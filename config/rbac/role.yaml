@@ -1,0 +1,38 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: manager-role
+rules:
+- apiGroups:
+  - aws-auth.prozorro.sale
+  resources:
+  - mapaccounts
+  - maproles
+  - mapusers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - aws-auth.prozorro.sale
+  resources:
+  - mapaccounts/finalizers
+  - maproles/finalizers
+  - mapusers/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - aws-auth.prozorro.sale
+  resources:
+  - mapaccounts/status
+  - maproles/status
+  - mapusers/status
+  verbs:
+  - get
+  - patch
+  - update

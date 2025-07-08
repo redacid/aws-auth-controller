@@ -1,0 +1,9 @@
+apiVersion: aws-auth.prozorro.sale/v1beta1
+kind: MapAccount
+metadata:
+  labels:
+    app.kubernetes.io/name: aws-auth-controller-prozorro
+    app.kubernetes.io/managed-by: kustomize
+  name: mapaccount-sample
+spec:
+  # TODO(user): Add fields here
