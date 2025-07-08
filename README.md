@@ -5,6 +5,7 @@ kubebuilder create api --group aws-auth --version v1beta1 --kind MapRole --names
 kubebuilder create api --group aws-auth --version v1beta1 --kind MapUser --namespaced true --controller --resource
 kubebuilder create api --group aws-auth --version v1beta1 --kind MapAccount --namespaced true --controller --resource
 
+kubebuilder create webhook --group aws-auth --version v1beta1 --kind MapUser --defaulting --programmatic-validation
 
 git tag 0.0.1 -m "Test 0.0.1"
 git push origin 0.0.1

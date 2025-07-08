@@ -39,6 +39,7 @@ import (
 
 	awsauthv1beta1 "github.com/redacid/aws-auth-controller/api/v1beta1"
 	"github.com/redacid/aws-auth-controller/internal/controller"
+	webhookv1beta1 "github.com/redacid/aws-auth-controller/internal/webhook/v1beta1"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -222,6 +223,13 @@ func main() {
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "MapAccount")
 		os.Exit(1)
+	}
+	// nolint:goconst
+	if os.Getenv("ENABLE_WEBHOOKS") != "false" {
+		if err := webhookv1beta1.SetupMapUserWebhookWithManager(mgr); err != nil {
+			setupLog.Error(err, "unable to create webhook", "webhook", "MapUser")
+			os.Exit(1)
+		}
 	}
 	// +kubebuilder:scaffold:builder
 
