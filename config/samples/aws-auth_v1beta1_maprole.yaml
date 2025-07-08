@@ -6,4 +6,9 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
   name: maprole-sample
 spec:
-  # TODO(user): Add fields here
+  rolearn: arn:aws:iam::130488995195:role/prod-self-managed-node-group
+  groups:
+    - sample:group1
+    - sample:group2
+  description: A sample maprole
+  username: system:node:{{EC2PrivateDNSName}}

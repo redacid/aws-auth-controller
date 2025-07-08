@@ -36,6 +36,8 @@ type MapAccountReconciler struct {
 // +kubebuilder:rbac:groups=aws-auth.prozorro.sale,resources=mapaccounts,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=aws-auth.prozorro.sale,resources=mapaccounts/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=aws-auth.prozorro.sale,resources=mapaccounts/finalizers,verbs=update
+// +kubebuilder:rbac:groups="",resources=configmaps,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups="",resources=configmaps,verbs=get;list;watch;update;patch;delete,resourceNames=aws-auth
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.

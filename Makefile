@@ -1,6 +1,6 @@
 # Image URL to use all building/pushing image targets
 #IMG ?= controller:latest
-IMG ?= redacid/aws-auth-controller:0.0.8
+IMG ?= redacid/aws-auth-controller:0.0.9
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -36,13 +36,15 @@ all: build
 # More info on the awk command:
 # http://linuxcommand.org/lc3_adv_awk.php
 
+.PHONY: preview
+preview: mod-tidy generate manifests kustomize
+	$(KUSTOMIZE) build config/default
+
 .PHONY: mod-tidy
 mod-tidy:
 	go mod tidy
 
-.PHONY: preview
-preview: kustomize mod-tidy generate manifests
-	$(KUSTOMIZE) build config/default
+
 
 .PHONY: help
 help: ## Display this help.

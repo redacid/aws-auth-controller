@@ -4,6 +4,10 @@ metadata:
   labels:
     app.kubernetes.io/name: aws-auth-controller-prozorro
     app.kubernetes.io/managed-by: kustomize
-  name: mapuser-sample
+  name: test2
 spec:
-  # TODO(user): Add fields here
+  description: A test mapuser
+  username: test1.user@ios.in.ua
+  groups:
+    - test:group
+  userarn: arn:aws:iam::123456789012:user/sample-mapuser1-1
