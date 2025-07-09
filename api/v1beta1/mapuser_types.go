@@ -29,18 +29,21 @@ type MapUserSpec struct {
 	// Important: Run "make" to regenerate code after modifying this file
 
 	// The User ARN to associate with the MapUser
+	// +kubebuilder:validation:Pattern:=`^arn:aws:iam::[0-9]{12}:user/[a-zA-Z0-9+=,.@_/-]+$`
 	UserARN string `json:"userarn"`
 
 	// The Kubernetes groups to associate with the MapUser
-	// +kubebuilder:validation:Optional
+	// +kubebuilder:validation:MinItems:=1
 	Groups []string `json:"groups"`
 
 	// A useful description of the MapUser
 	// +kubebuilder:validation:Optional
+	// +kubebuilder:validation:MaxLength:=254
 	Description string `json:"description"`
 
 	// The username for the MapUser
-	// +kubebuilder:validation:Optional
+	// +kubebuilder:validation:MaxLength:=254
+	// +kubebuilder:validation:MinLength:=3
 	Username string `json:"username"`
 }
 

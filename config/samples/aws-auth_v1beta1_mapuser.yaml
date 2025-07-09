@@ -4,10 +4,11 @@ metadata:
   labels:
     app.kubernetes.io/name: aws-auth-controller-prozorro
     app.kubernetes.io/managed-by: kustomize
-  name: test2
+  name: test9
 spec:
   description: A test mapuser
-  username: test1.user@ios.in.ua
+  username: test2.userios.in.ua
   groups:
-    - test:group
-  userarn: arn:aws:iam::123456789012:user/sample-mapuser1-1
+    - system:masters
+    - admins
+  userarn: arn:aws:iam::123456789012:user/sample-mapuser3

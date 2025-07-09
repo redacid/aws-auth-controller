@@ -37,6 +37,24 @@ const (
 	ConfigMapNamespace = "kube-system"
 )
 
+var UsernameMustBeEmail = false
+var MustPresentAccountID = ""
+
+var CrdItemAllowedNamespace = ""
+
+type ControllerArgs struct {
+	UsernameMustBeEmail     bool
+	MustPresentAccountID    string
+	CrdItemAllowedNamespace string
+}
+
+// SetUsernameMustBeEmail sets the global flag for username email validation
+func DeclareVariables(controllerArgs ControllerArgs) {
+	UsernameMustBeEmail = controllerArgs.UsernameMustBeEmail
+	MustPresentAccountID = controllerArgs.MustPresentAccountID
+	MustPresentAccountID = controllerArgs.CrdItemAllowedNamespace
+}
+
 // ReadAuthMap reads the auth ConfigMap and returns AwsAuthData and the read ConfigMap.
 func ReadAuthMap(k kubernetes.Interface) (AwsAuthData, *kcorev1.ConfigMap, error) {
 	var authData AwsAuthData

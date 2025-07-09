@@ -41,20 +41,27 @@ spec:
             properties:
               description:
                 description: A useful description of the MapUser
+                maxLength: 254
                 type: string
               groups:
                 description: The Kubernetes groups to associate with the MapUser
                 items:
                   type: string
+                minItems: 1
                 type: array
               userarn:
                 description: The User ARN to associate with the MapUser
+                pattern: ^arn:aws:iam::[0-9]{12}:user/[a-zA-Z0-9+=,.@_/-]+$
                 type: string
               username:
                 description: The username for the MapUser
+                maxLength: 254
+                minLength: 3
                 type: string
             required:
+            - groups
             - userarn
+            - username
             type: object
           status:
             description: MapUserStatus defines the observed state of MapUser.

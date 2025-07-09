@@ -29,18 +29,21 @@ type MapRoleSpec struct {
 	// Important: Run "make" to regenerate code after modifying this file
 
 	// The Role ARN to associate with the MapRole
+	// +kubebuilder:validation:Pattern:=`^arn:aws:iam::[0-9]{12}:role/[a-zA-Z0-9+=,.@_/-]+$`
 	RoleARN string `json:"rolearn"`
 
 	// The Kubernetes groups to associate with the MapRole
-	// +kubebuilder:validation:Optional
+	// +kubebuilder:validation:MinItems:=1
 	Groups []string `json:"groups"`
 
 	// A useful description of the MapRole
 	// +kubebuilder:validation:Optional
+	// +kubebuilder:validation:MaxLength:=254
 	Description string `json:"description"`
 
 	// The username for the MapUser
-	// +kubebuilder:validation:Optional
+	// +kubebuilder:validation:MaxLength:=254
+	// +kubebuilder:validation:MinLength:=3
 	Username string `json:"username"`
 }
 

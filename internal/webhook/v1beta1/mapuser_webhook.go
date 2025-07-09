@@ -19,7 +19,7 @@ package v1beta1
 import (
 	"context"
 	"fmt"
-
+	"github.com/redacid/aws-auth-controller/awsauth"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
@@ -27,6 +27,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
 	awsauthv1beta1 "github.com/redacid/aws-auth-controller/api/v1beta1"
+	_ "github.com/redacid/aws-auth-controller/awsauth"
+	_ "github.com/redacid/aws-auth-controller/kube"
 )
 
 // nolint:unused
@@ -73,7 +75,7 @@ func (d *MapUserCustomDefaulter) Default(_ context.Context, obj runtime.Object) 
 // TODO(user): change verbs to "verbs=create;update;delete" if you want to enable deletion validation.
 // NOTE: The 'path' attribute must follow a specific pattern and should not be modified directly here.
 // Modifying the path for an invalid path can cause API server errors; failing to locate the webhook.
-// +kubebuilder:webhook:path=/validate-aws-auth-prozorro-sale-v1beta1-mapuser,mutating=false,failurePolicy=fail,sideEffects=None,groups=aws-auth.prozorro.sale,resources=mapusers,verbs=create;update,versions=v1beta1,name=vmapuser-v1beta1.kb.io,admissionReviewVersions=v1
+// +kubebuilder:webhook:path=/validate-aws-auth-prozorro-sale-v1beta1-mapuser,mutating=false,failurePolicy=fail,sideEffects=None,groups=aws-auth.prozorro.sale,resources=mapusers,verbs=create;update;delete,versions=v1beta1,name=vmapuser-v1beta1.kb.io,admissionReviewVersions=v1
 
 // MapUserCustomValidator struct is responsible for validating the MapUser resource
 // when it is created, updated, or deleted.
@@ -92,7 +94,30 @@ func (v *MapUserCustomValidator) ValidateCreate(_ context.Context, obj runtime.O
 	if !ok {
 		return nil, fmt.Errorf("expected a MapUser object but got %T", obj)
 	}
-	mapuserlog.Info("Validation for MapUser upon creation", "name", mapuser.GetName())
+	mapuserlog.Info("Validation for MapUser upon creation",
+		"name", mapuser.GetName(),
+		"UserARN", mapuser.Spec.UserARN,
+		"Username", mapuser.Spec.Username,
+		"Description", mapuser.Spec.Description,
+		"Groups", mapuser.Spec.Groups,
+		"Namespace", mapuser.GetNamespace(),
+	)
+	if mapuser.GetNamespace() != "kube-system" {
+		mapuserlog.Error(nil, "Namespace "+mapuser.GetNamespace()+" is NOT allowed for creation MapUser")
+		return nil, fmt.Errorf("namespace %s is NOT allowed for creation MapUser", mapuser.GetNamespace())
+	}
+	// Validate fields
+	//if err := awsauth.VerifyUserARN(mapuser.Spec.UserARN); err != nil {
+	//	return nil, err
+	//}
+
+	//if err := awsauth.VerifyUsername(mapuser.Spec.Username, awsauth.UsernameMustBeEmail); err != nil {
+	//	return nil, err
+	//}
+
+	//if err := awsauth.VerifyGroups(mapuser.Spec.Groups); err != nil {
+	//	return nil, err
+	//}
 
 	// TODO(user): fill in your validation logic upon object creation.
 
@@ -102,10 +127,44 @@ func (v *MapUserCustomValidator) ValidateCreate(_ context.Context, obj runtime.O
 // ValidateUpdate implements webhook.CustomValidator so a webhook will be registered for the type MapUser.
 func (v *MapUserCustomValidator) ValidateUpdate(_ context.Context, oldObj, newObj runtime.Object) (admission.Warnings, error) {
 	mapuser, ok := newObj.(*awsauthv1beta1.MapUser)
+	oldmapuser, ok := oldObj.(*awsauthv1beta1.MapUser)
+
 	if !ok {
 		return nil, fmt.Errorf("expected a MapUser object for the newObj but got %T", newObj)
 	}
-	mapuserlog.Info("Validation for MapUser upon update", "name", mapuser.GetName())
+	mapuserlog.Info("Validation for MapUser upon update OLD:",
+		"name", oldmapuser.GetName(),
+		"UserARN", oldmapuser.Spec.UserARN,
+		"Username", oldmapuser.Spec.Username,
+		"Description", oldmapuser.Spec.Description,
+		"Groups", oldmapuser.Spec.Groups,
+		"Namespace", mapuser.GetNamespace(),
+	)
+	mapuserlog.Info("Validation for MapUser upon update NEW:",
+		"name", mapuser.GetName(),
+		"UserARN", mapuser.Spec.UserARN,
+		"Username", mapuser.Spec.Username,
+		"Description", mapuser.Spec.Description,
+		"Groups", mapuser.Spec.Groups,
+		"Namespace", mapuser.GetNamespace(),
+	)
+
+	if mapuser.GetNamespace() != "kube-system" {
+		mapuserlog.Error(nil, "Namespace "+mapuser.GetNamespace()+" is NOT allowed for creation MapUser")
+		return nil, fmt.Errorf("namespace %s is NOT allowed for creation MapUser", mapuser.GetNamespace())
+	}
+	// Validate fields
+	if err := awsauth.VerifyUserARN(mapuser.Spec.UserARN); err != nil {
+		return nil, err
+	}
+
+	if err := awsauth.VerifyUsername(mapuser.Spec.Username, awsauth.UsernameMustBeEmail); err != nil {
+		return nil, err
+	}
+
+	if err := awsauth.VerifyGroups(mapuser.Spec.Groups); err != nil {
+		return nil, err
+	}
 
 	// TODO(user): fill in your validation logic upon object update.
 
@@ -118,8 +177,18 @@ func (v *MapUserCustomValidator) ValidateDelete(ctx context.Context, obj runtime
 	if !ok {
 		return nil, fmt.Errorf("expected a MapUser object but got %T", obj)
 	}
-	mapuserlog.Info("Validation for MapUser upon deletion", "name", mapuser.GetName())
+	mapuserlog.Info("Validation for MapUser upon deletion",
+		"name", mapuser.GetName(),
+		"UserARN", mapuser.Spec.UserARN,
+		"Username", mapuser.Spec.Username,
+		"Description", mapuser.Spec.Description,
+		"Groups", mapuser.Spec.Groups,
+	)
 
+	mapuserlog.Info("Validation for MapUser upon deletion",
+		"name", mapuser.GetName(),
+		"UserARN", mapuser.Spec.UserARN,
+	)
 	// TODO(user): fill in your validation logic upon object deletion.
 
 	return nil, nil

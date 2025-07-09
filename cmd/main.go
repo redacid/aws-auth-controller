@@ -19,6 +19,7 @@ package main
 import (
 	"crypto/tls"
 	"flag"
+	"github.com/redacid/aws-auth-controller/awsauth"
 	"os"
 	"path/filepath"
 
@@ -64,7 +65,15 @@ func main() {
 	var probeAddr string
 	var secureMetrics bool
 	var enableHTTP2 bool
+	var userNameMustBeEmail bool
+	var mustPresentAccountID string
+	var crdItemAllowedNamespace string
 	var tlsOpts []func(*tls.Config)
+	flag.BoolVar(&userNameMustBeEmail, "username-must-be-email", false,
+		"Enables checking of username, should it be an email address, default false. Use --username-must-be-email=true to enable this feature.")
+	flag.StringVar(&mustPresentAccountID, "must-present-account-id", "", "This account must be allways present in ConfigMap, must-present-account-id=123456789012")
+	flag.StringVar(&crdItemAllowedNamespace, "crd-item-allowed-namespace", "", "Namespace where allowed creation of Resources crd-item-allowed-namespace=kube-system,"+
+		"If is set, only in this namespace allowed creation of Resources, if not set, all namespaces allowed creation of Resources.")
 	flag.StringVar(&metricsAddr, "metrics-bind-address", "0", "The address the metrics endpoint binds to. "+
 		"Use :8443 for HTTPS or :8080 for HTTP, or leave as 0 to disable the metrics service.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
@@ -89,6 +98,18 @@ func main() {
 	flag.Parse()
 
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
+
+	if mustPresentAccountID != "" {
+		awsauth.VerifyAWSAccount(mustPresentAccountID)
+	}
+
+	VariablesDeclare := awsauth.ControllerArgs{
+		UsernameMustBeEmail:     userNameMustBeEmail,
+		MustPresentAccountID:    mustPresentAccountID,
+		CrdItemAllowedNamespace: crdItemAllowedNamespace,
+	}
+
+	awsauth.DeclareVariables(VariablesDeclare)
 
 	// if the enable-http2 flag is false (the default), http/2 should be disabled
 	// due to its vulnerabilities. More specifically, disabling http/2 will

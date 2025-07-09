@@ -24,13 +24,17 @@ import (
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
 // MapAccountSpec defines the desired state of MapAccount.
-type MapAccountSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+//type MapAccountSpec struct {
+//	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
+//	// Important: Run "make" to regenerate code after modifying this file
+//
+//	// Foo is an example field of MapAccount. Edit mapaccount_types.go to remove/update
+//	//Foo string `json:"foo,omitempty"`
+//}
 
-	// Foo is an example field of MapAccount. Edit mapaccount_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
-}
+// +kubebuilder:validation:items:MaxLength:=12
+// +kubebuilder:validation:items:MinLength:=12
+type MapAccountSpec []string
 
 // MapAccountStatus defines the observed state of MapAccount.
 type MapAccountStatus struct {

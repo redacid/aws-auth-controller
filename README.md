@@ -15,3 +15,4 @@ cd ./config/samples kubectl apply -f prozorro_v1alpha1_mapuser.yaml -n kube-syst
 cd ./config/samples kubectl apply -f prozorro_v1alpha1_maprole.yaml -n kube-system
 
 https://book.kubebuilder.io/reference/using-finalizers
+https://book.kubebuilder.io/reference/markers/crd-validation

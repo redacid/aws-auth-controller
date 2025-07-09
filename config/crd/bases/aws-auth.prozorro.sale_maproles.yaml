@@ -41,20 +41,27 @@ spec:
             properties:
               description:
                 description: A useful description of the MapRole
+                maxLength: 254
                 type: string
               groups:
                 description: The Kubernetes groups to associate with the MapRole
                 items:
                   type: string
+                minItems: 1
                 type: array
               rolearn:
                 description: The Role ARN to associate with the MapRole
+                pattern: ^arn:aws:iam::[0-9]{12}:role/[a-zA-Z0-9+=,.@_/-]+$
                 type: string
               username:
                 description: The username for the MapUser
+                maxLength: 254
+                minLength: 3
                 type: string
             required:
+            - groups
             - rolearn
+            - username
             type: object
           status:
             description: MapRoleStatus defines the observed state of MapRole.

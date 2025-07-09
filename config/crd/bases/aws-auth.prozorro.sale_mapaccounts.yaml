@@ -37,13 +37,11 @@ spec:
           metadata:
             type: object
           spec:
-            description: MapAccountSpec defines the desired state of MapAccount.
-            properties:
-              foo:
-                description: Foo is an example field of MapAccount. Edit mapaccount_types.go
-                  to remove/update
-                type: string
-            type: object
+            items:
+              maxLength: 12
+              minLength: 12
+              type: string
+            type: array
           status:
             description: MapAccountStatus defines the observed state of MapAccount.
             type: object
