@@ -102,9 +102,12 @@ func (v *MapUserCustomValidator) ValidateCreate(_ context.Context, obj runtime.O
 		"Groups", mapuser.Spec.Groups,
 		"Namespace", mapuser.GetNamespace(),
 	)
-	if mapuser.GetNamespace() != "kube-system" {
-		mapuserlog.Error(nil, "Namespace "+mapuser.GetNamespace()+" is NOT allowed for creation MapUser")
-		return nil, fmt.Errorf("namespace %s is NOT allowed for creation MapUser", mapuser.GetNamespace())
+
+	if awsauth.CrdItemAllowedNamespace != "" {
+		if mapuser.GetNamespace() != awsauth.CrdItemAllowedNamespace {
+			mapuserlog.Error(nil, "Namespace "+mapuser.GetNamespace()+" is NOT allowed for creation MapUser")
+			return nil, fmt.Errorf("namespace %s is NOT allowed for creation MapUser", mapuser.GetNamespace())
+		}
 	}
 	// Validate fields
 	//if err := awsauth.VerifyUserARN(mapuser.Spec.UserARN); err != nil {

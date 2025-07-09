@@ -34,6 +34,8 @@ type MapRoleSpec struct {
 
 	// The Kubernetes groups to associate with the MapRole
 	// +kubebuilder:validation:MinItems:=1
+	// +kubebuilder:validation:items:MinLength:=3
+	// +kubebuilder:validation:items:MaxLength:=254
 	Groups []string `json:"groups"`
 
 	// A useful description of the MapRole

@@ -7,3 +7,4 @@ metadata:
   name: mapaccount-sample
 spec:
   # TODO(user): Add fields here
+  - "123123123123"

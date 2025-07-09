@@ -46,6 +46,8 @@ spec:
               groups:
                 description: The Kubernetes groups to associate with the MapRole
                 items:
+                  maxLength: 254
+                  minLength: 3
                   type: string
                 minItems: 1
                 type: array

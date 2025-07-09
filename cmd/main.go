@@ -19,9 +19,10 @@ package main
 import (
 	"crypto/tls"
 	"flag"
-	"github.com/redacid/aws-auth-controller/awsauth"
 	"os"
 	"path/filepath"
+
+	"github.com/redacid/aws-auth-controller/awsauth"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
@@ -68,12 +69,15 @@ func main() {
 	var userNameMustBeEmail bool
 	var mustPresentAccountID string
 	var crdItemAllowedNamespace string
+	var configMapName string
 	var tlsOpts []func(*tls.Config)
 	flag.BoolVar(&userNameMustBeEmail, "username-must-be-email", false,
 		"Enables checking of username, should it be an email address, default false. Use --username-must-be-email=true to enable this feature.")
 	flag.StringVar(&mustPresentAccountID, "must-present-account-id", "", "This account must be allways present in ConfigMap, must-present-account-id=123456789012")
 	flag.StringVar(&crdItemAllowedNamespace, "crd-item-allowed-namespace", "", "Namespace where allowed creation of Resources crd-item-allowed-namespace=kube-system,"+
 		"If is set, only in this namespace allowed creation of Resources, if not set, all namespaces allowed creation of Resources.")
+	flag.StringVar(&configMapName, "config-map-name", "aws-auth", "ConfigMap-name where store items, config-map-name=aws-auth, if not set, use default name aws-auth")
+
 	flag.StringVar(&metricsAddr, "metrics-bind-address", "0", "The address the metrics endpoint binds to. "+
 		"Use :8443 for HTTPS or :8080 for HTTP, or leave as 0 to disable the metrics service.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
@@ -107,6 +111,7 @@ func main() {
 		UsernameMustBeEmail:     userNameMustBeEmail,
 		MustPresentAccountID:    mustPresentAccountID,
 		CrdItemAllowedNamespace: crdItemAllowedNamespace,
+		ConfigMapName:           configMapName,
 	}
 
 	awsauth.DeclareVariables(VariablesDeclare)
@@ -249,6 +254,20 @@ func main() {
 	if os.Getenv("ENABLE_WEBHOOKS") != "false" {
 		if err := webhookv1beta1.SetupMapUserWebhookWithManager(mgr); err != nil {
 			setupLog.Error(err, "unable to create webhook", "webhook", "MapUser")
+			os.Exit(1)
+		}
+	}
+	// nolint:goconst
+	if os.Getenv("ENABLE_WEBHOOKS") != "false" {
+		if err := webhookv1beta1.SetupMapRoleWebhookWithManager(mgr); err != nil {
+			setupLog.Error(err, "unable to create webhook", "webhook", "MapRole")
+			os.Exit(1)
+		}
+	}
+	// nolint:goconst
+	if os.Getenv("ENABLE_WEBHOOKS") != "false" {
+		if err := webhookv1beta1.SetupMapAccountWebhookWithManager(mgr); err != nil {
+			setupLog.Error(err, "unable to create webhook", "webhook", "MapAccount")
 			os.Exit(1)
 		}
 	}

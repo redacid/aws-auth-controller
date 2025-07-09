@@ -33,26 +33,29 @@ func init() {
 }
 
 const (
-	ConfigMapName      = "aws-auth"
+	//ConfigMapName      = "aws-auth"
 	ConfigMapNamespace = "kube-system"
 )
 
-var UsernameMustBeEmail = false
-var MustPresentAccountID = ""
+var ConfigMapName = "aws-auth"
 
-var CrdItemAllowedNamespace = ""
+var UsernameMustBeEmail = false
+var MustPresentAccountID string = ""
+
+var CrdItemAllowedNamespace string = ""
 
 type ControllerArgs struct {
 	UsernameMustBeEmail     bool
 	MustPresentAccountID    string
 	CrdItemAllowedNamespace string
+	ConfigMapName           string
 }
 
-// SetUsernameMustBeEmail sets the global flag for username email validation
 func DeclareVariables(controllerArgs ControllerArgs) {
 	UsernameMustBeEmail = controllerArgs.UsernameMustBeEmail
 	MustPresentAccountID = controllerArgs.MustPresentAccountID
-	MustPresentAccountID = controllerArgs.CrdItemAllowedNamespace
+	CrdItemAllowedNamespace = controllerArgs.CrdItemAllowedNamespace
+	ConfigMapName = controllerArgs.ConfigMapName
 }
 
 // ReadAuthMap reads the auth ConfigMap and returns AwsAuthData and the read ConfigMap.

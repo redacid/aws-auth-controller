@@ -10,6 +10,46 @@ webhooks:
     service:
       name: webhook-service
       namespace: system
+      path: /mutate-aws-auth-prozorro-sale-v1beta1-mapaccount
+  failurePolicy: Fail
+  name: mmapaccount-v1beta1.kb.io
+  rules:
+  - apiGroups:
+    - aws-auth.prozorro.sale
+    apiVersions:
+    - v1beta1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - mapaccounts
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: webhook-service
+      namespace: system
+      path: /mutate-aws-auth-prozorro-sale-v1beta1-maprole
+  failurePolicy: Fail
+  name: mmaprole-v1beta1.kb.io
+  rules:
+  - apiGroups:
+    - aws-auth.prozorro.sale
+    apiVersions:
+    - v1beta1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - maproles
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: webhook-service
+      namespace: system
       path: /mutate-aws-auth-prozorro-sale-v1beta1-mapuser
   failurePolicy: Fail
   name: mmapuser-v1beta1.kb.io
@@ -30,6 +70,48 @@ kind: ValidatingWebhookConfiguration
 metadata:
   name: validating-webhook-configuration
 webhooks:
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: webhook-service
+      namespace: system
+      path: /validate-aws-auth-prozorro-sale-v1beta1-mapaccount
+  failurePolicy: Fail
+  name: vmapaccount-v1beta1.kb.io
+  rules:
+  - apiGroups:
+    - aws-auth.prozorro.sale
+    apiVersions:
+    - v1beta1
+    operations:
+    - CREATE
+    - UPDATE
+    - DELETE
+    resources:
+    - mapaccounts
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: webhook-service
+      namespace: system
+      path: /validate-aws-auth-prozorro-sale-v1beta1-maprole
+  failurePolicy: Fail
+  name: vmaprole-v1beta1.kb.io
+  rules:
+  - apiGroups:
+    - aws-auth.prozorro.sale
+    apiVersions:
+    - v1beta1
+    operations:
+    - CREATE
+    - UPDATE
+    - DELETE
+    resources:
+    - maproles
+  sideEffects: None
 - admissionReviewVersions:
   - v1
   clientConfig:
