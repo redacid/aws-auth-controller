@@ -82,15 +82,28 @@ func (m *Mapper) removeAuth(args *Arguments) error {
 		}
 		authData.SetMapUsers(newUsersAuthMap)
 	}
+	// TODO тут якась херня
+	if args.DataType == MapAccountData {
+		var newAccountsAuthMap []*MapAccount
+		for _, mapAccount := range authData.MapAccounts {
+			if args.AccountID != mapAccount.AccountID {
+				newAccountsAuthMap = append(newAccountsAuthMap, mapAccount)
+			} else {
+				removed = true
+			}
+		}
+		authData.SetMapAccounts(newAccountsAuthMap)
+	}
 
 	if !removed {
-		return fmt.Errorf("%s with username '%s' not found in auth map", args.DataType, args.CrdName)
+		return fmt.Errorf("%s with account id '%s' not found in auth map", args.DataType, args.AccountID)
 	}
 	return UpdateAuthMap(m.KubernetesClient, authData, configMap)
 }
 
 // Upsert updates or inserts a mapRole or mapUser item into the auth map.
 func (m *Mapper) Upsert(args *Arguments) error {
+	// TODO Remove this validate
 	args.Validate()
 	if args.WithRetries {
 		return WithRetry(m.upsertAuth, args)
@@ -124,6 +137,17 @@ func (m *Mapper) upsertAuth(args *Arguments) error {
 			log.Printf("%s with username '%s' key has been updated\n", args.DataType, args.Username)
 		}
 		authData.SetMapUsers(newMap)
+	}
+
+	if args.DataType == MapAccountData {
+		mapAccount := NewMapAccount(args.AccountID)
+		newMap, ok := upsertAccount(authData.MapAccounts, mapAccount)
+		if ok {
+			log.Printf("%s with account id '%s' key has been updated\n", args.DataType, args.AccountID)
+		} else {
+			log.Printf("%s with account id '%s' key has been updated\n", args.DataType, args.AccountID)
+		}
+		authData.SetMapAccounts(newMap)
 	}
 
 	return UpdateAuthMap(m.KubernetesClient, authData, configMap)
@@ -198,10 +222,40 @@ func upsertUser(authMaps []*MapUser, resource *MapUser) ([]*MapUser, bool) {
 	return authMaps, updated
 }
 
+func upsertAccount(authMaps []*MapAccount, resource *MapAccount) ([]*MapAccount, bool) {
+	var found, updated bool
+	//for _, existing := range authMaps {
+	//
+	//	if existing.CrdName == resource.CrdName {
+	//		found = true
+	//		if !reflect.DeepEqual(existing.Groups, resource.Groups) {
+	//			existing.SetGroups(resource.Groups)
+	//			updated = true
+	//		}
+	//		if existing.Username != resource.Username {
+	//			existing.SetUsername(resource.Username)
+	//			updated = true
+	//		}
+	//		if existing.UserARN != resource.UserARN {
+	//			existing.SetUserARN(resource.UserARN)
+	//			updated = true
+	//		}
+	//	}
+	//}
+
+	// Insert new account in auth map.
+	if !found {
+		updated = true
+		authMaps = append(authMaps, resource)
+	}
+	return authMaps, updated
+}
+
 // Arguments are the arguments for management of the auth map.
 type Arguments struct {
 	OperationType OperationType
 	DataType      DataType
+	AccountID     string
 	RoleARN       string
 	UserARN       string
 	CrdName       string
@@ -253,6 +307,7 @@ const (
 type DataType string
 
 const (
-	MapRoleData DataType = "mapRole"
-	MapUserData DataType = "mapUser"
+	MapRoleData    DataType = "mapRole"
+	MapUserData    DataType = "mapUser"
+	MapAccountData DataType = "mapAccount"
 )

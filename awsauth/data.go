@@ -33,12 +33,13 @@ func init() {
 }
 
 const (
-	//ConfigMapName      = "aws-auth"
+	// ConfigMapName      = "aws-auth"
 	ConfigMapNamespace = "kube-system"
 )
 
 var ConfigMapName = "aws-auth"
 
+var CrdFinalizerName = "aws-auth.prozorro.sale/finalizer"
 var UsernameMustBeEmail = false
 var MustPresentAccountID string = ""
 
@@ -79,8 +80,14 @@ func ReadAuthMap(k kubernetes.Interface) (AwsAuthData, *kcorev1.ConfigMap, error
 		return authData, cm, err
 	}
 
+	err = yaml.Unmarshal([]byte(cm.Data["mapAccounts"]), &authData.MapAccounts)
+	if err != nil {
+		return authData, cm, err
+	}
+
 	err = yaml.Unmarshal([]byte(cm.Data["mapUsers"]), &authData.MapUsers)
 	return authData, cm, err
+
 }
 
 func CreateAuthMap(k kubernetes.Interface) (*kcorev1.ConfigMap, error) {
@@ -109,9 +116,15 @@ func UpdateAuthMap(k kubernetes.Interface, authData AwsAuthData, cm *kcorev1.Con
 		return err
 	}
 
+	mapAccounts, err := yaml.Marshal(authData.MapAccounts)
+	if err != nil {
+		return err
+	}
+
 	cm.Data = map[string]string{
-		"mapRoles": string(mapRoles),
-		"mapUsers": string(mapUsers),
+		"mapRoles":    string(mapRoles),
+		"mapUsers":    string(mapUsers),
+		"mapAccounts": string(mapAccounts),
 	}
 
 	_, err = k.CoreV1().ConfigMaps(ConfigMapNamespace).Update(context.Background(), cm, apismetav1.UpdateOptions{})
@@ -120,8 +133,9 @@ func UpdateAuthMap(k kubernetes.Interface, authData AwsAuthData, cm *kcorev1.Con
 
 // AwsAuthData represents the data of the aws-auth configmap
 type AwsAuthData struct {
-	MapRoles []*MapRole `yaml:"mapRoles"`
-	MapUsers []*MapUser `yaml:"mapUsers"`
+	MapRoles    []*MapRole    `yaml:"mapRoles"`
+	MapUsers    []*MapUser    `yaml:"mapUsers"`
+	MapAccounts []*MapAccount `yaml:"mapAccounts"`
 }
 
 // SetMapRoles sets the MapRoles element
@@ -132,6 +146,10 @@ func (m *AwsAuthData) SetMapRoles(authMap []*MapRole) {
 // SetMapUsers sets the MapUsers element
 func (m *AwsAuthData) SetMapUsers(authMap []*MapUser) {
 	m.MapUsers = authMap
+}
+
+func (m *AwsAuthData) SetMapAccounts(authMap []*MapAccount) {
+	m.MapAccounts = authMap
 }
 
 // MapRole is the basic structure of a mapRoles authentication object
@@ -175,6 +193,7 @@ func NewMapRole(rolearn, username string, groups []string) *MapRole {
 }
 
 // MapUser is the basic structure of a mapUsers authentication object
+
 type MapUser struct {
 	CrdName  string   `yaml:"crdname"`
 	UserARN  string   `yaml:"userarn"`
@@ -217,5 +236,26 @@ func NewMapUser(crdname, userarn, username string, groups []string) *MapUser {
 		UserARN:  userarn,
 		Username: username,
 		Groups:   groups,
+	}
+}
+
+type MapAccount struct {
+	AccountID string `yaml:"accountid"`
+}
+
+func (r *MapAccount) SetAccount(v string) *MapAccount {
+	r.AccountID = v
+	return r
+}
+
+func (r *MapAccount) String() string {
+	var s strings.Builder
+	s.WriteString(fmt.Sprintf("- accountid: %v\n  ", r.AccountID))
+	return s.String()
+}
+
+func NewMapAccount(accountid string) *MapAccount {
+	return &MapAccount{
+		AccountID: accountid,
 	}
 }

@@ -47,6 +47,12 @@ type Service interface {
 
 	// RemoveMapUser removes a MapUser from the configmap keyed by username
 	RemoveMapUser(username string) error
+
+	// UpsertMapAccount upserts a mapAccount into the configmap keyed by username.
+	UpsertMapAccount(mapAccount MapAccount) error
+
+	// RemoveMapAccount removes a mapAccount from the configmap keyed by username
+	RemoveMapAccount(mapAccount MapAccount) error
 }
 
 // NewService returns an implementation of the Service interface.
@@ -134,6 +140,40 @@ func (svc impl) RemoveMapUser(username string) error {
 	})
 	if err != nil {
 		svc.cfg.Log.Info("mapUser not found", "username", username)
+	}
+	return err
+}
+
+// UpsertMapAccount upserts a MapAccount into the configmap keyed by username.
+func (svc impl) UpsertMapAccount(mapAccount MapAccount) error {
+	mapper := NewMapper(svc.cfg.KubeClient, false)
+	err := mapper.Upsert(&Arguments{
+		DataType:      MapAccountData,
+		AccountID:     mapAccount.AccountID,
+		WithRetries:   svc.cfg.WithRetries,
+		MaxRetryCount: svc.cfg.MaxRetryCount,
+		MaxRetryTime:  svc.cfg.MaxRetryTime,
+		MinRetryTime:  svc.cfg.MinRetryTime,
+	})
+	if err != nil {
+		svc.cfg.Log.Error(err, "failure to upsert mapUser", "accountid", mapAccount.AccountID)
+	}
+	return err
+}
+
+// RemoveMapUser removes a MapUser from the configmap keyed by username.
+func (svc impl) RemoveMapAccount(mapAccount MapAccount) error {
+	mapper := NewMapper(svc.cfg.KubeClient, false)
+	err := mapper.Remove(&Arguments{
+		DataType:      MapAccountData,
+		AccountID:     mapAccount.AccountID,
+		WithRetries:   svc.cfg.WithRetries,
+		MaxRetryCount: svc.cfg.MaxRetryCount,
+		MaxRetryTime:  svc.cfg.MaxRetryTime,
+		MinRetryTime:  svc.cfg.MinRetryTime,
+	})
+	if err != nil {
+		svc.cfg.Log.Info("mapAccount not found", "account id", mapAccount.AccountID)
 	}
 	return err
 }

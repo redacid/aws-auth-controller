@@ -13,8 +13,9 @@ git tag 0.0.1 -m "Test 0.0.1"
 git push origin 0.0.1
 
 cd ./charts helm upgrade -i --namespace kube-system aws-auth aws-auth-operator
-cd ./config/samples kubectl apply -f prozorro_v1alpha1_mapuser.yaml -n kube-system
-cd ./config/samples kubectl apply -f prozorro_v1alpha1_maprole.yaml -n kube-system
+cd ./config/samples kubectl apply -f aws-auth_v1beta1_mapuser.yaml -n kube-system
+cd ./config/samples kubectl apply -f aws-auth_v1beta1_maprole.yaml -n kube-system
+cd ./config/samples kubectl apply -f aws-auth_v1beta1_mapaccount.yaml -n kube-system
 
 https://book.kubebuilder.io/reference/using-finalizers
 https://book.kubebuilder.io/reference/markers/crd-validation

@@ -32,9 +32,11 @@ import (
 //	//Foo string `json:"foo,omitempty"`
 //}
 
-// +kubebuilder:validation:items:MaxLength:=12
-// +kubebuilder:validation:items:MinLength:=12
-type MapAccountSpec []string
+type MapAccountSpec struct {
+	// +kubebuilder:validation:MaxLength:=12
+	// +kubebuilder:validation:MinLength:=12
+	AccountID string `json:"accountid"`
+}
 
 // MapAccountStatus defines the observed state of MapAccount.
 type MapAccountStatus struct {

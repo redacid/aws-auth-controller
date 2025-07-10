@@ -61,6 +61,8 @@ spec:
       - command:
         - /manager
         args:
+          - --config-map-name=aws-auth-test
+          - --crd-item-allowed-namespace=kube-system
           - --username-must-be-email
           - --leader-elect
           - --health-probe-bind-address=:8081

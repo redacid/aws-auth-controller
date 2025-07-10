@@ -18,10 +18,13 @@ package controller
 
 import (
 	"context"
-
+	"github.com/redacid/aws-auth-controller/awsauth"
+	"github.com/redacid/aws-auth-controller/kube"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
 	awsauthv1beta1 "github.com/redacid/aws-auth-controller/api/v1beta1"
@@ -52,6 +55,93 @@ func (r *MapAccountReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	_ = logf.FromContext(ctx)
 
 	// TODO(user): your logic here
+
+	// MapAccount objects a list of AWS Accounts.
+	mapAccountName := req.Name
+	log := ctrl.Log.WithValues("MapAccount", mapAccountName)
+
+	log.Info("")
+
+	kubeClient, err := kube.GetClient()
+	if err != nil {
+		log.Error(err, "failure getting kube client")
+		return ctrl.Result{}, err
+	}
+
+	// Get a new aws auth service object.
+	awsauthSvc, err := awsauth.NewService(&awsauth.ServiceConfig{
+		KubeClient: kubeClient,
+		//Log:        r.Log,
+		Log: ctrl.Log,
+	})
+	if err != nil {
+		log.Error(err, "failure creating new aws auth service")
+		return ctrl.Result{}, err
+	}
+
+	// Load the MapUser object by name (its AWS IAM user ARN).
+	mapAccount := &awsauthv1beta1.MapAccount{}
+
+	if err := r.Get(ctx, req.NamespacedName, mapAccount); err != nil {
+		// If any error other than a "NotFound" API error, it's a problem.
+		statusErr, ok := err.(*apierrors.StatusError)
+		if !ok || (ok && statusErr.ErrStatus.Reason != "NotFound") {
+			logf.Log.Error(err, "failure getting mapAccount")
+			return ctrl.Result{}, err
+		}
+		// FINALIZER
+		// examine DeletionTimestamp to determine if object is under deletion
+		if mapAccount.ObjectMeta.DeletionTimestamp.IsZero() {
+			logf.Log.Info("mapAccount is not being deleted, so adding finalizer")
+			// The object is not being deleted, so if it does not have our finalizer,
+			// then let's add the finalizer and update the object. This is equivalent
+			// to registering our finalizer.
+			if !controllerutil.ContainsFinalizer(mapAccount, awsauth.CrdFinalizerName) {
+				controllerutil.AddFinalizer(mapAccount, awsauth.CrdFinalizerName)
+				if err := r.Update(ctx, mapAccount); err != nil {
+					return ctrl.Result{}, err
+				}
+			}
+		} else {
+			// The object is being deleted
+			//if controllerutil.ContainsFinalizer(&mapAccount, awsauth.CrdFinalizerName) {
+			//	// our finalizer is present, so let's handle any external dependency
+			//	if err := r.deleteExternalResources(mapAccount); err != nil {
+			//		// if fail to delete the external dependency here, return with error
+			//		// so that it can be retried.
+			//		return ctrl.Result{}, err
+			//	}
+			//
+			//	// remove our finalizer from the list and update it.
+			//	controllerutil.RemoveFinalizer(&mapAccount, awsauth.CrdFinalizerName)
+			//	if err := r.Update(ctx, &mapAccount); err != nil {
+			//		return ctrl.Result{}, err
+			//	}
+			//}
+
+			// Stop reconciliation as the item is being deleted
+			return ctrl.Result{}, nil
+		}
+		// END FINALIZER
+
+		if err := awsauthSvc.RemoveMapAccount(awsauth.MapAccount{
+			AccountID: mapAccount.Spec.AccountID,
+		}); err != nil {
+			log.Error(err, "failure removing mapAccount data in aws-auth configmap")
+			return ctrl.Result{}, nil
+		}
+		log.Info("removed mapAccount data in aws-auth configmap")
+		return ctrl.Result{}, nil
+	}
+
+	// Ensure that any changes are synced to the kube-system:aws-auth ConfigMap.
+	if err := awsauthSvc.UpsertMapAccount(awsauth.MapAccount{
+		AccountID: mapAccount.Spec.AccountID,
+	}); err != nil {
+		log.Error(err, "failure upserting MapAccount")
+		return ctrl.Result{}, err
+	}
+	log.Info("upserted MapAccount")
 
 	return ctrl.Result{}, nil
 }

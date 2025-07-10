@@ -6,5 +6,16 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
   name: mapaccount-sample
 spec:
-  # TODO(user): Add fields here
-  - "123123123123"
+  accountid: "111111111111"
+
+#---
+#
+#apiVersion: aws-auth.prozorro.sale/v1beta1
+#kind: MapAccount
+#metadata:
+#  labels:
+#    app.kubernetes.io/name: aws-auth-controller-prozorro
+#    app.kubernetes.io/managed-by: kustomize
+#  name: mapaccount-sample2
+#spec:
+#  accountid: "222222222222"

@@ -74,9 +74,9 @@ func main() {
 	flag.BoolVar(&userNameMustBeEmail, "username-must-be-email", false,
 		"Enables checking of username, should it be an email address, default false. Use --username-must-be-email=true to enable this feature.")
 	flag.StringVar(&mustPresentAccountID, "must-present-account-id", "", "This account must be allways present in ConfigMap, must-present-account-id=123456789012")
-	flag.StringVar(&crdItemAllowedNamespace, "crd-item-allowed-namespace", "", "Namespace where allowed creation of Resources crd-item-allowed-namespace=kube-system,"+
+	flag.StringVar(&crdItemAllowedNamespace, "crd-item-allowed-namespace", "", "Namespace where allowed creation of Resources --crd-item-allowed-namespace=kube-system,"+
 		"If is set, only in this namespace allowed creation of Resources, if not set, all namespaces allowed creation of Resources.")
-	flag.StringVar(&configMapName, "config-map-name", "aws-auth", "ConfigMap-name where store items, config-map-name=aws-auth, if not set, use default name aws-auth")
+	flag.StringVar(&configMapName, "config-map-name", "aws-auth", "ConfigMap-name where store items, --config-map-name=aws-auth, if not set, use default name aws-auth")
 
 	flag.StringVar(&metricsAddr, "metrics-bind-address", "0", "The address the metrics endpoint binds to. "+
 		"Use :8443 for HTTPS or :8080 for HTTP, or leave as 0 to disable the metrics service.")
