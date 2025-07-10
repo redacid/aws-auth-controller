@@ -19,6 +19,8 @@ package v1beta1
 import (
 	"context"
 	"fmt"
+	"github.com/redacid/aws-auth-controller/awsauth"
+	"github.com/redacid/aws-auth-controller/kube"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -96,18 +98,46 @@ func (v *MapAccountCustomValidator) ValidateCreate(_ context.Context, obj runtim
 
 	// TODO(user): fill in your validation logic upon object creation.
 
+	kubeClient, err := kube.GetClient()
+	if err != nil {
+		mapaccountlog.Error(err, "Failure getting kube client")
+		return nil, err
+	}
+
+	// Get a new aws auth service object.
+	awsauthSvc, err := awsauth.NewService(&awsauth.ServiceConfig{
+		KubeClient: kubeClient,
+		//Log:        r.Log,
+		Log: ctrl.Log,
+	})
+	if err != nil {
+		mapaccountlog.Error(err, "Failure creating new aws auth service")
+		return nil, err
+	}
+
+	if err = awsauthSvc.CheckAccountExists(awsauth.MapAccount{
+		AccountID: mapaccount.Spec.AccountID,
+	}); err != nil {
+		mapaccountlog.Info("Failure checking, account exists in aws-auth configmap")
+		return nil, fmt.Errorf("Failure checking, accountid %v exists in aws-auth configmap", mapaccount.Spec.AccountID)
+	}
+
 	return nil, nil
 }
 
 // ValidateUpdate implements webhook.CustomValidator so a webhook will be registered for the type MapAccount.
 func (v *MapAccountCustomValidator) ValidateUpdate(_ context.Context, oldObj, newObj runtime.Object) (admission.Warnings, error) {
 	mapaccount, ok := newObj.(*awsauthv1beta1.MapAccount)
+	oldmapaccount, ok := oldObj.(*awsauthv1beta1.MapAccount)
 	if !ok {
 		return nil, fmt.Errorf("expected a MapAccount object for the newObj but got %T", newObj)
 	}
 	mapaccountlog.Info("Validation for MapAccount upon update", "name", mapaccount.GetName(), "AccountID", mapaccount.Spec)
 
 	// TODO(user): fill in your validation logic upon object update.
+	if (mapaccount.Spec.AccountID != oldmapaccount.Spec.AccountID) && (mapaccount.Spec.AccountID != "") {
+		return nil, fmt.Errorf("AccountID cannot be changed, pls create a new MapAccount with the new AccountID")
+	}
 
 	return nil, nil
 }

@@ -4,9 +4,9 @@ metadata:
   labels:
     app.kubernetes.io/name: aws-auth-controller-prozorro
     app.kubernetes.io/managed-by: kustomize
-  name: mapaccount-sample
+  name: mapaccount-sample1
 spec:
-  accountid: "111111111111"
+  accountid: "111111111113"
 
 #---
 #

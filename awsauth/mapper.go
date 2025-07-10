@@ -101,6 +101,49 @@ func (m *Mapper) removeAuth(args *Arguments) error {
 	return UpdateAuthMap(m.KubernetesClient, authData, configMap)
 }
 
+func (m *Mapper) CheckExists(args *Arguments) error {
+
+	if args.WithRetries {
+		return WithRetry(m.existsAuth, args)
+	}
+	return m.existsAuth(args)
+}
+
+func (m *Mapper) existsAuth(args *Arguments) error {
+	authData, _, err := ReadAuthMap(m.KubernetesClient)
+	if err != nil {
+		return err
+	}
+	log.Printf("authData: %v\n", authData)
+	if args.DataType == MapAccountData {
+		mapAccount := NewMapAccount(args.AccountID)
+		errAccount, exists := existsAccount(authData.MapAccounts, mapAccount)
+		if exists {
+			log.Printf("%s with account id '%s' already exists\n", args.DataType, args.AccountID)
+			return errAccount
+		} else {
+			log.Printf("%s with account id '%s' not exists\n", args.DataType, args.AccountID)
+			return nil
+		}
+	}
+	// TODO
+	return nil //UpdateAuthMap(m.KubernetesClient, authData, configMap)
+}
+
+func existsAccount(authMaps []*MapAccount, resource *MapAccount) (error, bool) {
+	var found bool
+	for _, existing := range authMaps {
+		if existing.AccountID == resource.AccountID {
+			found = true
+			return fmt.Errorf("account with id '%s' already exists", resource.AccountID), found
+		} else {
+			found = false
+			return nil, found
+		}
+	}
+	return nil, false
+}
+
 // Upsert updates or inserts a mapRole or mapUser item into the auth map.
 func (m *Mapper) Upsert(args *Arguments) error {
 	// TODO Remove this validate
@@ -224,24 +267,16 @@ func upsertUser(authMaps []*MapUser, resource *MapUser) ([]*MapUser, bool) {
 
 func upsertAccount(authMaps []*MapAccount, resource *MapAccount) ([]*MapAccount, bool) {
 	var found, updated bool
-	//for _, existing := range authMaps {
-	//
-	//	if existing.CrdName == resource.CrdName {
-	//		found = true
-	//		if !reflect.DeepEqual(existing.Groups, resource.Groups) {
-	//			existing.SetGroups(resource.Groups)
-	//			updated = true
-	//		}
-	//		if existing.Username != resource.Username {
-	//			existing.SetUsername(resource.Username)
-	//			updated = true
-	//		}
-	//		if existing.UserARN != resource.UserARN {
-	//			existing.SetUserARN(resource.UserARN)
-	//			updated = true
-	//		}
-	//	}
-	//}
+	for _, existing := range authMaps {
+
+		if existing.AccountID == resource.AccountID {
+			found = true
+			if existing.AccountID != resource.AccountID {
+				existing.SetAccount(resource.AccountID)
+				updated = true
+			}
+		}
+	}
 
 	// Insert new account in auth map.
 	if !found {
