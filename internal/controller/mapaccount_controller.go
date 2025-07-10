@@ -80,33 +80,28 @@ func (r *MapAccountReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	}
 
 	// Load the MapUser object by name (its AWS IAM user ARN).
-	mapAccount := awsauthv1beta1.MapAccount{}
+	mapAccount := &awsauthv1beta1.MapAccount{}
 
-	if err := r.Get(ctx, req.NamespacedName, &mapAccount); err != nil {
+	if err := r.Get(ctx, req.NamespacedName, mapAccount); err != nil {
 		// If any error other than a "NotFound" API error, it's a problem.
 		statusErr, ok := err.(*apierrors.StatusError)
 		if !ok || (ok && statusErr.ErrStatus.Reason != "NotFound") {
 			logf.Log.Error(err, "Failure getting mapAccount")
 			return ctrl.Result{}, err
 		}
-
 		return ctrl.Result{}, nil
 	}
-
 	// examine DeletionTimestamp to determine if object is under deletion
 	if mapAccount.ObjectMeta.DeletionTimestamp.IsZero() {
 		logf.Log.Info("mapAccount is not being deleted")
-		// The object is not being deleted, so if it does not have our finalizer,
-		// then let's add the finalizer and update the object. This is equivalent
-		// to registering our finalizer.
-		if !controllerutil.ContainsFinalizer(&mapAccount, awsauth.CrdFinalizerName) {
+		// Add finalizer
+		if !controllerutil.ContainsFinalizer(mapAccount, awsauth.CrdFinalizerName) {
 			logf.Log.Info("mapAccount is not being deleted, so adding finalizer")
-			controllerutil.AddFinalizer(&mapAccount, awsauth.CrdFinalizerName)
-			if err := r.Update(ctx, &mapAccount); err != nil {
+			controllerutil.AddFinalizer(mapAccount, awsauth.CrdFinalizerName)
+			if err := r.Update(ctx, mapAccount); err != nil {
 				return ctrl.Result{}, err
 			}
 		} else {
-
 			// Ensure that any changes are synced to the kube-system:aws-auth ConfigMap.
 			if err := awsauthSvc.UpsertMapAccount(awsauth.MapAccount{
 				AccountID: mapAccount.Spec.AccountID,
@@ -119,7 +114,7 @@ func (r *MapAccountReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 
 	} else {
 		log.Info("mapAccount is being deleted")
-		if controllerutil.ContainsFinalizer(&mapAccount, awsauth.CrdFinalizerName) {
+		if controllerutil.ContainsFinalizer(mapAccount, awsauth.CrdFinalizerName) {
 			if err := awsauthSvc.RemoveMapAccount(awsauth.MapAccount{
 				AccountID: mapAccount.Spec.AccountID,
 			}); err != nil {
@@ -127,8 +122,8 @@ func (r *MapAccountReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 				return ctrl.Result{}, nil
 			}
 			logf.Log.Info("mapAccount is being deleted, so removing finalizer")
-			controllerutil.RemoveFinalizer(&mapAccount, awsauth.CrdFinalizerName)
-			if err := r.Update(ctx, &mapAccount); err != nil {
+			controllerutil.RemoveFinalizer(mapAccount, awsauth.CrdFinalizerName)
+			if err := r.Update(ctx, mapAccount); err != nil {
 				return ctrl.Result{}, err
 			}
 		}

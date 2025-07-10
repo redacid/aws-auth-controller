@@ -41,6 +41,8 @@ var ConfigMapName = "aws-auth"
 
 var CrdFinalizerName = "aws-auth.prozorro.sale/finalizer"
 var UsernameMustBeEmail = false
+
+// TODO automatic add to configmap
 var MustPresentAccountID string = ""
 
 var CrdItemAllowedNamespace string = ""

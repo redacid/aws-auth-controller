@@ -115,6 +115,13 @@ func (v *MapAccountCustomValidator) ValidateCreate(_ context.Context, obj runtim
 		return nil, err
 	}
 
+	if awsauth.CrdItemAllowedNamespace != "" {
+		if mapaccount.GetNamespace() != awsauth.CrdItemAllowedNamespace {
+			mapuserlog.Error(nil, "Namespace "+mapaccount.GetNamespace()+" is NOT allowed for creation MapAccount")
+			return nil, fmt.Errorf("namespace %s is NOT allowed for creation MapAccount", mapaccount.GetNamespace())
+		}
+	}
+
 	if err = awsauthSvc.CheckAccountExists(awsauth.MapAccount{
 		AccountID: mapaccount.Spec.AccountID,
 	}); err != nil {

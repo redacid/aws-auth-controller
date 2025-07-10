@@ -27,32 +27,6 @@ var AllowedAWSAccounts = []string{
 	"130488995195",
 }
 
-//type Verifier struct {
-//	KubernetesClient kubernetes.Interface
-//}
-//
-//// NewVerifier returns a new Verifier object.
-//func NewVerifier(client kubernetes.Interface, discardLogOutput bool) *Verifier {
-//	var verifier = &Verifier{}
-//	verifier.KubernetesClient = client
-//
-//	if !discardLogOutput {
-//		log.SetOutput(io.Discard)
-//	}
-//	return verifier
-//}
-//
-//
-//func (v *Verifier) checkAccountExists(accountID string) bool {
-//	authData, configMap, err := ReadAuthMap(v.KubernetesClient)
-//	for _, acc := range AllowedAWSAccounts {
-//		if acc == accountID {
-//			return true
-//		}
-//	}
-//	return false
-//}
-
 // VerifyAWSAccount validates if the provided string is a valid AWS account ID (12 digits)
 func VerifyAWSAccount(accountID string) error {
 	if accountID == "" {

@@ -19,6 +19,7 @@ package v1beta1
 import (
 	"context"
 	"fmt"
+	"github.com/redacid/aws-auth-controller/awsauth"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -93,6 +94,13 @@ func (v *MapRoleCustomValidator) ValidateCreate(_ context.Context, obj runtime.O
 		return nil, fmt.Errorf("expected a MapRole object but got %T", obj)
 	}
 	maprolelog.Info("Validation for MapRole upon creation", "name", maprole.GetName())
+
+	if awsauth.CrdItemAllowedNamespace != "" {
+		if maprole.GetNamespace() != awsauth.CrdItemAllowedNamespace {
+			mapuserlog.Error(nil, "Namespace "+maprole.GetNamespace()+" is NOT allowed for creation MapRole")
+			return nil, fmt.Errorf("namespace %s is NOT allowed for creation MapRole", maprole.GetNamespace())
+		}
+	}
 
 	// TODO(user): fill in your validation logic upon object creation.
 

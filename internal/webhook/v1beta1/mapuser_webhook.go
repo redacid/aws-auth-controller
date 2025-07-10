@@ -114,9 +114,9 @@ func (v *MapUserCustomValidator) ValidateCreate(_ context.Context, obj runtime.O
 	//	return nil, err
 	//}
 
-	//if err := awsauth.VerifyUsername(mapuser.Spec.Username, awsauth.UsernameMustBeEmail); err != nil {
-	//	return nil, err
-	//}
+	if err := awsauth.VerifyUsername(mapuser.Spec.Username, awsauth.UsernameMustBeEmail); err != nil {
+		return nil, err
+	}
 
 	//if err := awsauth.VerifyGroups(mapuser.Spec.Groups); err != nil {
 	//	return nil, err

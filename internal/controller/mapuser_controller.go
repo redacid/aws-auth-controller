@@ -19,6 +19,7 @@ package controller
 import (
 	"context"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -79,36 +80,54 @@ func (r *MapUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	}
 
 	// Load the MapUser object by name (its AWS IAM user ARN).
-	var mapUser awsauthv1beta1.MapUser
+	mapUser := &awsauthv1beta1.MapUser{}
 
-	if err := r.Get(ctx, req.NamespacedName, &mapUser); err != nil {
+	if err := r.Get(ctx, req.NamespacedName, mapUser); err != nil {
 		// If any error other than a "NotFound" API error, it's a problem.
 		statusErr, ok := err.(*apierrors.StatusError)
 		if !ok || (ok && statusErr.ErrStatus.Reason != "NotFound") {
 			logf.Log.Error(err, "failure getting MapUser")
 			return ctrl.Result{}, err
 		}
-
-		if err := awsauthSvc.RemoveMapUser(mapUserName); err != nil {
-			log.Error(err, "failure removing mapUser data in aws-auth configmap")
-			return ctrl.Result{}, nil
-		}
-		log.Info("removed mapUser data in aws-auth configmap")
 		return ctrl.Result{}, nil
 	}
-
-	// Ensure that any changes are synced to the kube-system:aws-auth ConfigMap.
-	if err := awsauthSvc.UpsertMapUser(mapUser.Name, awsauth.MapUser{
-		CrdName:  mapUser.Name,
-		Username: mapUser.Spec.Username,
-		UserARN:  mapUser.Spec.UserARN,
-		Groups:   mapUser.Spec.Groups,
-	}); err != nil {
-		log.Error(err, "failure upserting MapUser")
-		return ctrl.Result{}, err
+	if mapUser.ObjectMeta.DeletionTimestamp.IsZero() {
+		logf.Log.Info("mapAccount is not being deleted")
+		// Add finalizer
+		if !controllerutil.ContainsFinalizer(mapUser, awsauth.CrdFinalizerName) {
+			logf.Log.Info("mapAccount is not being deleted, so adding finalizer")
+			controllerutil.AddFinalizer(mapUser, awsauth.CrdFinalizerName)
+			if err := r.Update(ctx, mapUser); err != nil {
+				return ctrl.Result{}, err
+			}
+		} else {
+			// Ensure that any changes are synced to the kube-system:aws-auth ConfigMap.
+			if err := awsauthSvc.UpsertMapUser(mapUser.Name, awsauth.MapUser{
+				CrdName:  mapUser.Name,
+				Username: mapUser.Spec.Username,
+				UserARN:  mapUser.Spec.UserARN,
+				Groups:   mapUser.Spec.Groups,
+			}); err != nil {
+				log.Error(err, "failure upserting MapUser")
+				return ctrl.Result{}, err
+			}
+			log.Info("upserted MapUser")
+		}
+	} else {
+		log.Info("mapUser is being deleted")
+		if controllerutil.ContainsFinalizer(mapUser, awsauth.CrdFinalizerName) {
+			if err := awsauthSvc.RemoveMapUser(mapUserName); err != nil {
+				log.Error(err, "failure removing mapUser data in aws-auth configmap")
+				return ctrl.Result{}, nil
+			}
+			logf.Log.Info("mapUser is being deleted, so removing finalizer")
+			controllerutil.RemoveFinalizer(mapUser, awsauth.CrdFinalizerName)
+			if err := r.Update(ctx, mapUser); err != nil {
+				return ctrl.Result{}, err
+			}
+		}
 	}
-	log.Info("upserted MapUser")
-
+	log.Info("removed mapUser data in aws-auth configmap")
 	return ctrl.Result{}, nil
 }
 

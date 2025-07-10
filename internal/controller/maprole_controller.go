@@ -76,8 +76,8 @@ func (r *MapRoleReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	}
 
 	// Load the MapRole object by name (its AWS IAM role ARN).
-	var mapRole awsauthv1beta1.MapRole
-	if err := r.Get(ctx, req.NamespacedName, &mapRole); err != nil {
+	mapRole := &awsauthv1beta1.MapRole{}
+	if err := r.Get(ctx, req.NamespacedName, mapRole); err != nil {
 		// If any error other than a "NotFound" API error, it's a problem.
 		statusErr, ok := err.(*apierrors.StatusError)
 		if !ok || (ok && statusErr.ErrStatus.Reason != "NotFound") {
