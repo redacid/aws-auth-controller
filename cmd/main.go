@@ -107,14 +107,14 @@ func main() {
 		awsauth.VerifyAWSAccount(mustPresentAccountID)
 	}
 
-	VariablesDeclare := awsauth.ControllerArgs{
+	declareVariables := awsauth.ControllerArgs{
 		UsernameMustBeEmail:     userNameMustBeEmail,
 		MustPresentAccountID:    mustPresentAccountID,
 		CrdItemAllowedNamespace: crdItemAllowedNamespace,
 		ConfigMapName:           configMapName,
 	}
 
-	awsauth.DeclareVariables(VariablesDeclare)
+	awsauth.DeclareVariables(declareVariables)
 
 	// if the enable-http2 flag is false (the default), http/2 should be disabled
 	// due to its vulnerabilities. More specifically, disabling http/2 will
