@@ -135,7 +135,7 @@ func (v *MapAccountCustomValidator) ValidateCreate(_ context.Context, obj runtim
 // ValidateUpdate implements webhook.CustomValidator so a webhook will be registered for the type MapAccount.
 func (v *MapAccountCustomValidator) ValidateUpdate(_ context.Context, oldObj, newObj runtime.Object) (admission.Warnings, error) {
 	mapaccount, ok := newObj.(*awsauthv1beta1.MapAccount)
-	oldmapaccount, ok := oldObj.(*awsauthv1beta1.MapAccount)
+	oldmapaccount, _ := oldObj.(*awsauthv1beta1.MapAccount)
 	if !ok {
 		return nil, fmt.Errorf("expected a MapAccount object for the newObj but got %T", newObj)
 	}

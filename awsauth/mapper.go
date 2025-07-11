@@ -127,7 +127,7 @@ func (m *Mapper) existsAuth(args *Arguments) error {
 		}
 	}
 	// TODO
-	return nil //UpdateAuthMap(m.KubernetesClient, authData, configMap)
+	return nil
 }
 
 func existsAccount(authMaps []*MapAccount, resource *MapAccount) (error, bool) {

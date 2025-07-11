@@ -55,6 +55,7 @@ func (r *MapRoleReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	_ = logf.FromContext(ctx)
 
 	mapRoleName := req.Name
+
 	log := ctrl.Log.WithValues("MapRole", mapRoleName)
 	log.Info("reconciling MapRole...")
 
