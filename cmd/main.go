@@ -104,7 +104,11 @@ func main() {
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 
 	if mustPresentAccountID != "" {
-		awsauth.VerifyAWSAccount(mustPresentAccountID)
+		err := awsauth.VerifyAWSAccount(mustPresentAccountID)
+		if err != nil {
+			setupLog.Error(err, "Error verifying AWS Account ID", "account-id", mustPresentAccountID)
+			os.Exit(1)
+		}
 	}
 
 	declareVariables := awsauth.ControllerArgs{
