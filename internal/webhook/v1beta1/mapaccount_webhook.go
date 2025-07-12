@@ -174,7 +174,7 @@ func (v *MapAccountCustomValidator) ValidateUpdate(_ context.Context, oldObj, ne
 }
 
 // ValidateDelete implements webhook.CustomValidator so a webhook will be registered for the type MapAccount.
-func (v *MapAccountCustomValidator) ValidateDelete(ctx context.Context, obj runtime.Object) (admission.Warnings, error) {
+func (v *MapAccountCustomValidator) ValidateDelete(_ context.Context, obj runtime.Object) (admission.Warnings, error) {
 	mapaccount, ok := obj.(*awsauthv1beta1.MapAccount)
 	if !ok {
 		return nil, fmt.Errorf("expected a MapAccount object but got %T", obj)
