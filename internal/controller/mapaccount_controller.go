@@ -18,8 +18,7 @@ package controller
 
 import (
 	"context"
-	"github.com/redacid/aws-auth-controller/awsauth"
-	"github.com/redacid/aws-auth-controller/kube"
+
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -28,6 +27,8 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
 	awsauthv1beta1 "github.com/redacid/aws-auth-controller/api/v1beta1"
+	"github.com/redacid/aws-auth-controller/awsauth"
+	"github.com/redacid/aws-auth-controller/kube"
 )
 
 // MapAccountReconciler reconciles a MapAccount object
@@ -93,7 +94,7 @@ func (r *MapAccountReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		return ctrl.Result{}, nil
 	}
 	// examine DeletionTimestamp to determine if object is under deletion
-	if mapAccount.ObjectMeta.DeletionTimestamp.IsZero() {
+	if mapAccount.DeletionTimestamp.IsZero() {
 		logf.Log.Info("mapAccount is not being deleted")
 		// Add finalizer
 		if !controllerutil.ContainsFinalizer(mapAccount, awsauth.CrdFinalizerName) {

@@ -19,7 +19,6 @@ package v1beta1
 import (
 	"context"
 	"fmt"
-	"github.com/redacid/aws-auth-controller/awsauth"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -28,6 +27,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
 	awsauthv1beta1 "github.com/redacid/aws-auth-controller/api/v1beta1"
+	"github.com/redacid/aws-auth-controller/awsauth"
 )
 
 // nolint:unused

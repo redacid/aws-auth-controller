@@ -18,12 +18,14 @@ package awsauth
 import (
 	"context"
 	"fmt"
+	"log"
+
 	"gopkg.in/yaml.v2"
 	kcorev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	apismetav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	"log"
+
 	"strings"
 )
 

@@ -19,6 +19,9 @@ package v1beta1
 import (
 	"context"
 	"fmt"
+
+	"time"
+
 	"github.com/redacid/aws-auth-controller/awsauth"
 	"github.com/redacid/aws-auth-controller/kube"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -27,7 +30,6 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
-	"time"
 
 	awsauthv1beta1 "github.com/redacid/aws-auth-controller/api/v1beta1"
 )

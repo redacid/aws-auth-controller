@@ -32,8 +32,9 @@ func createMockConfigMap(client kubernetes.Interface) {
 		"system:node:{{EC2PrivateDNSName}}",
 		[]string{"system:bootstrappers", "system:nodes"})
 
-	user := NewMapUser("testcrd", "arn:aws:iam::00000000000:user/user-1",
-		"admin",
+	user := NewMapUser(
+		"arn:aws:iam::00000000000:user/user-1",
+		"testcrd",
 		[]string{"system:masters"})
 
 	configMap := &v1.ConfigMap{
@@ -68,7 +69,6 @@ func TestUpdateAuthMap(t *testing.T) {
 		"system:node:{{EC2PrivateDNSName}}",
 		[]string{"system:bootstrappers", "system:nodes"})
 	user := NewMapUser("testcrd", "arn:aws:iam::00000000000:user/user-2",
-		"ops-user",
 		[]string{"system:masters"})
 
 	auth.MapRoles = append(auth.MapRoles, role)

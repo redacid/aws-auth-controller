@@ -158,7 +158,7 @@ func (m *Mapper) removeAuth(args *Arguments) error {
 	}
 
 	if !removed {
-		return fmt.Errorf("%s with fields '%s' not found in auth map", args.DataType, args)
+		return fmt.Errorf("%s with fields '%v' not found in auth map", args.DataType, args)
 	}
 	return UpdateAuthMap(m.KubernetesClient, authData, configMap)
 }

@@ -18,6 +18,7 @@ package controller
 
 import (
 	"context"
+
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
@@ -92,7 +93,7 @@ func (r *MapUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		}
 		return ctrl.Result{}, nil
 	}
-	if mapUser.ObjectMeta.DeletionTimestamp.IsZero() {
+	if mapUser.DeletionTimestamp.IsZero() {
 		logf.Log.Info("mapAccount is not being deleted")
 		// Add finalizer
 		if !controllerutil.ContainsFinalizer(mapUser, awsauth.CrdFinalizerName) {
