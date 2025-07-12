@@ -21,19 +21,22 @@ import (
 	"fmt"
 	"github.com/redacid/aws-auth-controller/awsauth"
 	"github.com/redacid/aws-auth-controller/kube"
-
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
+	"time"
 
 	awsauthv1beta1 "github.com/redacid/aws-auth-controller/api/v1beta1"
 )
 
 // nolint:unused
 // log is for logging in this package.
-var mapaccountlog = logf.Log.WithName("mapaccount-resource")
+var (
+	//mapAccountMutex sync.Mutex
+	mapaccountlog = logf.Log.WithName("mapaccount-resource")
+)
 
 // SetupMapAccountWebhookWithManager registers the webhook for MapAccount in the manager.
 func SetupMapAccountWebhookWithManager(mgr ctrl.Manager) error {
@@ -90,6 +93,11 @@ var _ webhook.CustomValidator = &MapAccountCustomValidator{}
 
 // ValidateCreate implements webhook.CustomValidator so a webhook will be registered for the type MapAccount.
 func (v *MapAccountCustomValidator) ValidateCreate(_ context.Context, obj runtime.Object) (admission.Warnings, error) {
+	// This wait need for write to configmap
+	//mapAccountMutex.Lock()
+	//defer mapAccountMutex.Unlock()
+	time.Sleep(100 * time.Millisecond)
+
 	mapaccount, ok := obj.(*awsauthv1beta1.MapAccount)
 	if !ok {
 		return nil, fmt.Errorf("expected a MapAccount object but got %T", obj)

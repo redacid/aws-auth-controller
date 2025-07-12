@@ -19,26 +19,33 @@ package v1beta1
 import (
 	"context"
 	"fmt"
-
-	"k8s.io/apimachinery/pkg/runtime"
-	ctrl "sigs.k8s.io/controller-runtime"
-	logf "sigs.k8s.io/controller-runtime/pkg/log"
-	"sigs.k8s.io/controller-runtime/pkg/webhook"
-	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
-
 	awsauthv1beta1 "github.com/redacid/aws-auth-controller/api/v1beta1"
 	"github.com/redacid/aws-auth-controller/awsauth"
 	"github.com/redacid/aws-auth-controller/kube"
+	"k8s.io/apimachinery/pkg/runtime"
+	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/controller-runtime/pkg/webhook"
+	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
+	"time"
 )
 
 // nolint:unused
 // log is for logging in this package.
-var mapuserlog = logf.Log.WithName("mapuser-resource")
+var (
+	mapuserlog = logf.Log.WithName("mapuser-resource")
+)
 
 // SetupMapUserWebhookWithManager registers the webhook for MapUser in the manager.
 func SetupMapUserWebhookWithManager(mgr ctrl.Manager) error {
+	validator := &MapUserCustomValidator{
+		Client: mgr.GetClient(),
+	}
+
 	return ctrl.NewWebhookManagedBy(mgr).For(&awsauthv1beta1.MapUser{}).
-		WithValidator(&MapUserCustomValidator{}).
+		// WithValidator(&MapUserCustomValidator{}).
+		WithValidator(validator).
 		WithDefaulter(&MapUserCustomDefaulter{}).
 		Complete()
 }
@@ -84,12 +91,16 @@ func (d *MapUserCustomDefaulter) Default(_ context.Context, obj runtime.Object) 
 // as this struct is used only for temporary operations and does not need to be deeply copied.
 type MapUserCustomValidator struct {
 	// TODO(user): Add more fields as needed for validation
+	Client client.Client
 }
 
 var _ webhook.CustomValidator = &MapUserCustomValidator{}
 
 // ValidateCreate implements webhook.CustomValidator so a webhook will be registered for the type MapUser.
-func (v *MapUserCustomValidator) ValidateCreate(_ context.Context, obj runtime.Object) (admission.Warnings, error) {
+func (v *MapUserCustomValidator) ValidateCreate(ctx context.Context, obj runtime.Object) (admission.Warnings, error) {
+	// This wait need for write to configmap
+	time.Sleep(100 * time.Millisecond)
+
 	mapuser, ok := obj.(*awsauthv1beta1.MapUser)
 	if !ok {
 		return nil, fmt.Errorf("expected a MapUser object but got %T", obj)
@@ -102,6 +113,26 @@ func (v *MapUserCustomValidator) ValidateCreate(_ context.Context, obj runtime.O
 		"Groups", mapuser.Spec.Groups,
 		"Namespace", mapuser.GetNamespace(),
 	)
+
+	if awsauth.CrdItemAllowedNamespace != "" {
+		if mapuser.GetNamespace() != awsauth.CrdItemAllowedNamespace {
+			mapuserlog.Error(nil, "Namespace "+mapuser.GetNamespace()+" is NOT allowed for creation MapUser")
+			return nil, fmt.Errorf("namespace %s is NOT allowed for creation MapUser", mapuser.GetNamespace())
+		}
+	}
+	// -----
+	var mapUserList awsauthv1beta1.MapUserList
+	if err := v.Client.List(ctx, &mapUserList); err != nil {
+		return nil, err
+	}
+	for _, existingUser := range mapUserList.Items {
+		if existingUser.Spec.Username == mapuser.Spec.Username ||
+			existingUser.Spec.UserARN == mapuser.Spec.UserARN {
+			return nil, fmt.Errorf("duplicate user data found: username %s or userarn %s already exists in another MapUser resource: %s",
+				mapuser.Spec.Username, mapuser.Spec.UserARN, existingUser.GetName())
+		}
+	}
+	// -----
 
 	kubeClient, err := kube.GetClient()
 	if err != nil {
@@ -117,13 +148,6 @@ func (v *MapUserCustomValidator) ValidateCreate(_ context.Context, obj runtime.O
 	if err != nil {
 		mapuserlog.Error(err, "Failure creating new aws auth service")
 		return nil, err
-	}
-
-	if awsauth.CrdItemAllowedNamespace != "" {
-		if mapuser.GetNamespace() != awsauth.CrdItemAllowedNamespace {
-			mapuserlog.Error(nil, "Namespace "+mapuser.GetNamespace()+" is NOT allowed for creation MapUser")
-			return nil, fmt.Errorf("namespace %s is NOT allowed for creation MapUser", mapuser.GetNamespace())
-		}
 	}
 
 	if err := awsauth.VerifyUsername(mapuser.Spec.Username, awsauth.UsernameMustBeEmail); err != nil {

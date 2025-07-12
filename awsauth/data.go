@@ -18,14 +18,13 @@ package awsauth
 import (
 	"context"
 	"fmt"
-	"log"
-	"strings"
-
 	"gopkg.in/yaml.v2"
 	kcorev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	apismetav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
+	"log"
+	"strings"
 )
 
 func init() {
@@ -37,15 +36,14 @@ const (
 	ConfigMapNamespace = "kube-system"
 )
 
-var ConfigMapName = "aws-auth"
-
-var CrdFinalizerName = "aws-auth.prozorro.sale/finalizer"
-var UsernameMustBeEmail = false
-
-// TODO automatic add to configmap
-var MustPresentAccountID string = ""
-
-var CrdItemAllowedNamespace string = ""
+var (
+	ConfigMapName       = "aws-auth"
+	CrdFinalizerName    = "aws-auth.prozorro.sale/finalizer"
+	UsernameMustBeEmail = false
+	// TODO automatic add to configmap
+	MustPresentAccountID    string = ""
+	CrdItemAllowedNamespace string = ""
+)
 
 type ControllerArgs struct {
 	UsernameMustBeEmail     bool
@@ -63,6 +61,7 @@ func DeclareVariables(controllerArgs ControllerArgs) {
 
 // ReadAuthMap reads the auth ConfigMap and returns AwsAuthData and the read ConfigMap.
 func ReadAuthMap(k kubernetes.Interface) (AwsAuthData, *kcorev1.ConfigMap, error) {
+
 	var authData AwsAuthData
 
 	cm, err := k.CoreV1().ConfigMaps(ConfigMapNamespace).Get(context.Background(), ConfigMapName, apismetav1.GetOptions{})

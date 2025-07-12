@@ -39,7 +39,7 @@ metadata:
   name: user3
 spec:
   description: A test mapuser
-  username: user3@ios.in.ua
+  username: user2@ios.in.ua
   groups:
     - system:masters
     - users

@@ -26,6 +26,67 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
+// Arguments are the arguments for management of the auth map.
+type Arguments struct {
+	OperationType OperationType
+	DataType      DataType
+	AccountID     string
+	RoleARN       string
+	UserARN       string
+	Username      string
+	Groups        []string
+	WithRetries   bool
+	MinRetryTime  time.Duration
+	MaxRetryTime  time.Duration
+	MaxRetryCount int
+}
+
+// Validate validates if all Arguments fields are valid.
+func (args *Arguments) Validate() {
+	if args.WithRetries && args.MaxRetryCount < 1 {
+		log.Println("error: retry max count is invalid, must be greater than zero")
+	}
+	if args.Username == "" {
+		log.Println("error: username not provided")
+	}
+	if args.OperationType == "" {
+		log.Println("error: operation type not provided")
+	}
+	if args.OperationType != UpsertOperation && args.OperationType != RemoveOperation {
+		log.Printf("error: operation type '%s' not valid\n", args.OperationType)
+	}
+	if args.DataType == "" {
+		log.Println("error: data type not provided")
+	}
+	if args.DataType != MapRoleData && args.DataType != MapUserData && args.DataType != MapAccountData {
+		log.Printf("error: data type '%s' not valid\n", args.DataType)
+	}
+	if args.OperationType == UpsertOperation && args.DataType == MapRoleData && args.RoleARN == "" {
+		log.Println("error: role arn not provided")
+	}
+	if args.OperationType == UpsertOperation && args.DataType == MapUserData && args.UserARN == "" {
+		log.Println("error: user arn not provided")
+	}
+}
+
+// OperationType indicates the auth map management operation.
+type OperationType string
+
+const (
+	UpsertOperation      OperationType = "upsert"
+	RemoveOperation      OperationType = "remove"
+	CheckExistsOperation OperationType = "checkExists"
+)
+
+// DataType indicates the auth map management scope.
+type DataType string
+
+const (
+	MapRoleData    DataType = "mapRole"
+	MapUserData    DataType = "mapUser"
+	MapAccountData DataType = "mapAccount"
+)
+
 // NewMapper returns a new Mapper object.
 func NewMapper(client kubernetes.Interface, discardLogOutput bool) *Mapper {
 	var mapper = &Mapper{}
@@ -118,10 +179,10 @@ func (m *Mapper) existsAuth(args *Arguments) error {
 	if args.DataType == MapAccountData {
 		log.Printf("authData.MapAccounts: %v\n", authData.MapAccounts)
 		mapAccount := NewMapAccount(args.AccountID)
-		errAccount, exists := existsAccount(authData.MapAccounts, mapAccount)
+		err, exists := existsAccount(authData.MapAccounts, mapAccount)
 		if exists {
-			log.Printf("%s with account id '%s' already exists\n", args.DataType, args.AccountID)
-			return errAccount
+			log.Printf("%v", err)
+			return err
 		} else {
 			log.Printf("%s with account id '%s' not exists\n", args.DataType, args.AccountID)
 			return nil
@@ -144,7 +205,10 @@ func (m *Mapper) existsAuth(args *Arguments) error {
 
 func existsAccount(authMaps []*MapAccount, resource *MapAccount) (error, bool) {
 	var found = false
+	log.Printf("existsAccount check: account id: %v \n", resource.AccountID)
 	for _, existing := range authMaps {
+		log.Printf("existsAccount: cm account id: %v \n", existing.AccountID)
+		log.Printf("existsAccount: new account id: %v \n", resource.AccountID)
 		if existing.AccountID == resource.AccountID {
 			found = true
 			return fmt.Errorf("account with id '%s' already exists", resource.AccountID), found
@@ -293,63 +357,3 @@ func upsertAccount(authMaps []*MapAccount, resource *MapAccount) ([]*MapAccount,
 	}
 	return authMaps, updated
 }
-
-// Arguments are the arguments for management of the auth map.
-type Arguments struct {
-	OperationType OperationType
-	DataType      DataType
-	AccountID     string
-	RoleARN       string
-	UserARN       string
-	Username      string
-	Groups        []string
-	WithRetries   bool
-	MinRetryTime  time.Duration
-	MaxRetryTime  time.Duration
-	MaxRetryCount int
-}
-
-// Validate validates if all Arguments fields are valid.
-func (args *Arguments) Validate() {
-	if args.WithRetries && args.MaxRetryCount < 1 {
-		log.Println("error: retry max count is invalid, must be greater than zero")
-	}
-	if args.Username == "" {
-		log.Println("error: username not provided")
-	}
-	if args.OperationType == "" {
-		log.Println("error: operation type not provided")
-	}
-	if args.OperationType != UpsertOperation && args.OperationType != RemoveOperation {
-		log.Printf("error: operation type '%s' not valid\n", args.OperationType)
-	}
-	if args.DataType == "" {
-		log.Println("error: data type not provided")
-	}
-	if args.DataType != MapRoleData && args.DataType != MapUserData {
-		log.Printf("error: data type '%s' not valid\n", args.DataType)
-	}
-	if args.OperationType == UpsertOperation && args.DataType == MapRoleData && args.RoleARN == "" {
-		log.Println("error: role arn not provided")
-	}
-	if args.OperationType == UpsertOperation && args.DataType == MapUserData && args.UserARN == "" {
-		log.Println("error: user arn not provided")
-	}
-}
-
-// OperationType indicates the auth map management operation.
-type OperationType string
-
-const (
-	UpsertOperation OperationType = "upsert"
-	RemoveOperation OperationType = "remove"
-)
-
-// DataType indicates the auth map management scope.
-type DataType string
-
-const (
-	MapRoleData    DataType = "mapRole"
-	MapUserData    DataType = "mapUser"
-	MapAccountData DataType = "mapAccount"
-)
