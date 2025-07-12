@@ -181,7 +181,5 @@ func (v *MapAccountCustomValidator) ValidateDelete(_ context.Context, obj runtim
 	}
 	mapaccountlog.Info("Validation for MapAccount upon deletion", "name", mapaccount.GetName(), "AccountID", mapaccount.Spec)
 
-	// TODO(user): fill in your validation logic upon object deletion.
-
 	return nil, nil
 }
