@@ -74,8 +74,6 @@ func (d *MapUserCustomDefaulter) Default(_ context.Context, obj runtime.Object) 
 	}
 	mapuserlog.Info("Defaulting for MapUser", "name", mapuser.GetName())
 
-	// TODO(user): fill in your defaulting logic.
-
 	return nil
 }
 
@@ -90,7 +88,6 @@ func (d *MapUserCustomDefaulter) Default(_ context.Context, obj runtime.Object) 
 // NOTE: The +kubebuilder:object:generate=false marker prevents controller-gen from generating DeepCopy methods,
 // as this struct is used only for temporary operations and does not need to be deeply copied.
 type MapUserCustomValidator struct {
-	// TODO(user): Add more fields as needed for validation
 	Client client.Client
 }
 
@@ -194,7 +191,7 @@ func (v *MapUserCustomValidator) ValidateUpdate(_ context.Context, oldObj, newOb
 	)
 
 	if (mapuser.Spec.Username != oldmapuser.Spec.Username) && (mapuser.Spec.Username != "") {
-		return nil, fmt.Errorf("Username cannot be changed, pls create a new MapUser with the new Username, only change Groups allowed")
+		return nil, fmt.Errorf("username cannot be changed, pls create a new MapUser with the new Username, only change Groups allowed")
 	}
 	if (mapuser.Spec.UserARN != oldmapuser.Spec.UserARN) && (mapuser.Spec.UserARN != "") {
 		return nil, fmt.Errorf("UserARN cannot be changed, pls create a new MapUser with the new UserARN, only change Groups allowed")
@@ -225,7 +222,6 @@ func (v *MapUserCustomValidator) ValidateDelete(ctx context.Context, obj runtime
 		"name", mapuser.GetName(),
 		"UserARN", mapuser.Spec.UserARN,
 	)
-	// TODO(user): fill in your validation logic upon object deletion.
 
 	return nil, nil
 }

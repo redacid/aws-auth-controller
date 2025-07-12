@@ -23,6 +23,7 @@ import (
 	"github.com/redacid/aws-auth-controller/kube"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
@@ -34,14 +35,17 @@ import (
 // nolint:unused
 // log is for logging in this package.
 var (
-	//mapAccountMutex sync.Mutex
 	mapaccountlog = logf.Log.WithName("mapaccount-resource")
 )
 
 // SetupMapAccountWebhookWithManager registers the webhook for MapAccount in the manager.
 func SetupMapAccountWebhookWithManager(mgr ctrl.Manager) error {
+	validator := &MapUserCustomValidator{
+		Client: mgr.GetClient(),
+	}
 	return ctrl.NewWebhookManagedBy(mgr).For(&awsauthv1beta1.MapAccount{}).
-		WithValidator(&MapAccountCustomValidator{}).
+		// WithValidator(&MapAccountCustomValidator{}).
+		WithValidator(validator).
 		WithDefaulter(&MapAccountCustomDefaulter{}).
 		Complete()
 }
@@ -70,8 +74,6 @@ func (d *MapAccountCustomDefaulter) Default(_ context.Context, obj runtime.Objec
 	}
 	mapaccountlog.Info("Defaulting for MapAccount", "name", mapaccount.GetName(), "AccountID", mapaccount.Spec)
 
-	// TODO(user): fill in your defaulting logic.
-
 	return nil
 }
 
@@ -86,25 +88,45 @@ func (d *MapAccountCustomDefaulter) Default(_ context.Context, obj runtime.Objec
 // NOTE: The +kubebuilder:object:generate=false marker prevents controller-gen from generating DeepCopy methods,
 // as this struct is used only for temporary operations and does not need to be deeply copied.
 type MapAccountCustomValidator struct {
-	// TODO(user): Add more fields as needed for validation
+	Client client.Client
 }
 
 var _ webhook.CustomValidator = &MapAccountCustomValidator{}
 
 // ValidateCreate implements webhook.CustomValidator so a webhook will be registered for the type MapAccount.
-func (v *MapAccountCustomValidator) ValidateCreate(_ context.Context, obj runtime.Object) (admission.Warnings, error) {
+func (v *MapAccountCustomValidator) ValidateCreate(ctx context.Context, obj runtime.Object) (admission.Warnings, error) {
 	// This wait need for write to configmap
-	//mapAccountMutex.Lock()
-	//defer mapAccountMutex.Unlock()
 	time.Sleep(100 * time.Millisecond)
 
 	mapaccount, ok := obj.(*awsauthv1beta1.MapAccount)
 	if !ok {
 		return nil, fmt.Errorf("expected a MapAccount object but got %T", obj)
 	}
-	mapaccountlog.Info("Validation for MapAccount upon creation", "name", mapaccount.GetName(), "AccountID", mapaccount.Spec)
+	mapaccountlog.Info("Validation for MapAccount upon creation",
+		"name",
+		mapaccount.GetName(),
+		"AccountID", mapaccount.Spec,
+	)
 
-	// TODO(user): fill in your validation logic upon object creation.
+	if awsauth.CrdItemAllowedNamespace != "" {
+		if mapaccount.GetNamespace() != awsauth.CrdItemAllowedNamespace {
+			mapuserlog.Error(nil, "Namespace "+mapaccount.GetNamespace()+" is NOT allowed for creation MapAccount")
+			return nil, fmt.Errorf("namespace %s is NOT allowed for creation MapAccount", mapaccount.GetNamespace())
+		}
+	}
+
+	// -----
+	var mapAccountList awsauthv1beta1.MapAccountList
+	if err := v.Client.List(ctx, &mapAccountList); err != nil {
+		return nil, err
+	}
+	for _, existingAccount := range mapAccountList.Items {
+		if existingAccount.Spec.AccountID == mapaccount.Spec.AccountID {
+			return nil, fmt.Errorf("duplicate account data found: account id %s already exists in another MapAccount resource: %s",
+				mapaccount.Spec.AccountID, existingAccount.GetName())
+		}
+	}
+	// -----
 
 	kubeClient, err := kube.GetClient()
 	if err != nil {
@@ -123,18 +145,11 @@ func (v *MapAccountCustomValidator) ValidateCreate(_ context.Context, obj runtim
 		return nil, err
 	}
 
-	if awsauth.CrdItemAllowedNamespace != "" {
-		if mapaccount.GetNamespace() != awsauth.CrdItemAllowedNamespace {
-			mapuserlog.Error(nil, "Namespace "+mapaccount.GetNamespace()+" is NOT allowed for creation MapAccount")
-			return nil, fmt.Errorf("namespace %s is NOT allowed for creation MapAccount", mapaccount.GetNamespace())
-		}
-	}
-
 	if err = awsauthSvc.CheckMapAccountExists(awsauth.MapAccount{
 		AccountID: mapaccount.Spec.AccountID,
 	}); err != nil {
 		mapaccountlog.Info("Failure checking, account exists in aws-auth configmap")
-		return nil, fmt.Errorf("Failure checking, accountid %v exists in aws-auth configmap", mapaccount.Spec.AccountID)
+		return nil, fmt.Errorf("failure checking, accountid %v exists in aws-auth configmap", mapaccount.Spec.AccountID)
 	}
 
 	return nil, nil
@@ -149,7 +164,6 @@ func (v *MapAccountCustomValidator) ValidateUpdate(_ context.Context, oldObj, ne
 	}
 	mapaccountlog.Info("Validation for MapAccount upon update", "name", mapaccount.GetName(), "AccountID", mapaccount.Spec)
 
-	// TODO(user): fill in your validation logic upon object update.
 	if (mapaccount.Spec.AccountID != oldmapaccount.Spec.AccountID) && (mapaccount.Spec.AccountID != "") {
 		return nil, fmt.Errorf("AccountID cannot be changed, pls create a new MapAccount with the new AccountID")
 	}
