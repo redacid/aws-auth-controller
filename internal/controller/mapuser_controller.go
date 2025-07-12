@@ -60,7 +60,7 @@ func (r *MapUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	// mapUserName := req.Name
 	mapUserName := req.Name
 	log := ctrl.Log.WithValues("MapUser", mapUserName)
-	//log := r. Log.WithValues("MapUser", mapUserName)
+	// log := r. Log.WithValues("MapUser", mapUserName)
 	log.Info("")
 
 	kubeClient, err := kube.GetClient()
@@ -72,7 +72,7 @@ func (r *MapUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	// Get a new aws auth service object.
 	awsauthSvc, err := awsauth.NewService(&awsauth.ServiceConfig{
 		KubeClient: kubeClient,
-		//Log:        r.Log,
+		// Log:        r.Log,
 		Log:           ctrl.Log,
 		MaxRetryCount: 5,
 	})
@@ -87,7 +87,7 @@ func (r *MapUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	if err := r.Get(ctx, req.NamespacedName, mapUser); err != nil {
 		// If any error other than a "NotFound" API error, it's a problem.
 		statusErr, ok := err.(*apierrors.StatusError)
-		if !ok || (ok && statusErr.ErrStatus.Reason != "NotFound") {
+		if !ok || (ok && statusErr.ErrStatus.Reason != NotFound) {
 			logf.Log.Error(err, "failure getting MapUser")
 			return ctrl.Result{}, err
 		}

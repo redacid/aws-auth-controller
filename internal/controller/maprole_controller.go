@@ -68,7 +68,7 @@ func (r *MapRoleReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	// Get a new aws auth service object.
 	awsauthSvc, err := awsauth.NewService(&awsauth.ServiceConfig{
 		KubeClient: kubeClient,
-		//Log:        r.Log,
+		// Log:        r.Log,
 		Log: ctrl.Log,
 	})
 	if err != nil {
@@ -81,7 +81,7 @@ func (r *MapRoleReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	if err := r.Get(ctx, req.NamespacedName, mapRole); err != nil {
 		// If any error other than a "NotFound" API error, it's a problem.
 		statusErr, ok := err.(*apierrors.StatusError)
-		if !ok || (ok && statusErr.ErrStatus.Reason != "NotFound") {
+		if !ok || (ok && statusErr.ErrStatus.Reason != NotFound) {
 			log.Error(err, "failure getting MapRole")
 			return ctrl.Result{}, err
 		}

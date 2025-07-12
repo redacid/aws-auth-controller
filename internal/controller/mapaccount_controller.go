@@ -72,7 +72,7 @@ func (r *MapAccountReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	// Get a new aws auth service object.
 	awsauthSvc, err := awsauth.NewService(&awsauth.ServiceConfig{
 		KubeClient: kubeClient,
-		//Log:        r.Log,
+		// Log:        r.Log,
 		Log:           ctrl.Log,
 		MaxRetryCount: 5,
 	})
@@ -87,7 +87,7 @@ func (r *MapAccountReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	if err := r.Get(ctx, req.NamespacedName, mapAccount); err != nil {
 		// If any error other than a "NotFound" API error, it's a problem.
 		statusErr, ok := err.(*apierrors.StatusError)
-		if !ok || (ok && statusErr.ErrStatus.Reason != "NotFound") {
+		if !ok || (ok && statusErr.ErrStatus.Reason != NotFound) {
 			logf.Log.Error(err, "Failure getting mapAccount")
 			return ctrl.Result{}, err
 		}

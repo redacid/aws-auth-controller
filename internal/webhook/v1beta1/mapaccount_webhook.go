@@ -139,7 +139,7 @@ func (v *MapAccountCustomValidator) ValidateCreate(ctx context.Context, obj runt
 	// Get a new aws auth service object.
 	awsauthSvc, err := awsauth.NewService(&awsauth.ServiceConfig{
 		KubeClient: kubeClient,
-		//Log:        r.Log,
+		// Log:        r.Log,
 		Log: ctrl.Log,
 	})
 	if err != nil {

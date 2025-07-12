@@ -215,7 +215,7 @@ func existsAccount(authMaps []*MapAccount, resource *MapAccount) (error, bool) {
 			return fmt.Errorf("account with id '%s' already exists", resource.AccountID), found
 		} else {
 			found = false
-			//return nil, found
+			// return nil, found
 		}
 	}
 	return nil, found
@@ -235,7 +235,7 @@ func existsUser(authMaps []*MapUser, resource *MapUser) (error, bool) {
 			return fmt.Errorf("existsUser: userarn  '%s' already exists", resource.UserARN), found
 		} else {
 			found = false
-			//return nil, found
+			// return nil, found
 		}
 	}
 	return nil, found
