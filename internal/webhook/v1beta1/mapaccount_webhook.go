@@ -122,7 +122,7 @@ func (v *MapAccountCustomValidator) ValidateCreate(_ context.Context, obj runtim
 		}
 	}
 
-	if err = awsauthSvc.CheckAccountExists(awsauth.MapAccount{
+	if err = awsauthSvc.CheckMapAccountExists(awsauth.MapAccount{
 		AccountID: mapaccount.Spec.AccountID,
 	}); err != nil {
 		mapaccountlog.Info("Failure checking, account exists in aws-auth configmap")

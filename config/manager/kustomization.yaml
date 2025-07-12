@@ -5,4 +5,4 @@ kind: Kustomization
 images:
 - name: controller
   newName: redacid/aws-auth-controller
-  newTag: 0.0.47
+  newTag: 0.0.61

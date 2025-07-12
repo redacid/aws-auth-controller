@@ -43,13 +43,16 @@ type Service interface {
 	RemoveMapRole(username string) error
 
 	// UpsertMapUser upserts a MapUser into the configmap keyed by username.
-	UpsertMapUser(username string, mapUser MapUser) error
+	UpsertMapUser(mapUser MapUser) error
 
 	// RemoveMapUser removes a MapUser from the configmap keyed by username
-	RemoveMapUser(username string) error
+	RemoveMapUser(mapUser MapUser) error
 
-	// CheckAccountExists checks if an account with the specified account ID exists.
-	CheckAccountExists(mapAccount MapAccount) error
+	// CheckMapAccountExists checks if an MapAccount with the specified account ID exists.
+	CheckMapAccountExists(mapAccount MapAccount) error
+
+	// CheckMapUserExists checks if an MapUser with the specified username and userarn ID exists.
+	CheckMapUserExists(mapUser MapUser) error
 
 	// UpsertMapAccount upserts a mapAccount into the configmap keyed by username.
 	UpsertMapAccount(mapAccount MapAccount) error
@@ -108,14 +111,30 @@ func (svc impl) RemoveMapRole(username string) error {
 	return err
 }
 
+func (svc impl) CheckMapUserExists(mapUser MapUser) error {
+	svc.cfg.Log.Info("CheckMapUserExists", "username", mapUser.Username, "userarn", mapUser.UserARN)
+	mapper := NewMapper(svc.cfg.KubeClient, false)
+	err := mapper.CheckExists(&Arguments{
+		DataType:      MapUserData,
+		Username:      mapUser.Username,
+		UserARN:       mapUser.UserARN,
+		WithRetries:   svc.cfg.WithRetries,
+		MaxRetryCount: svc.cfg.MaxRetryCount,
+		MaxRetryTime:  svc.cfg.MaxRetryTime,
+		MinRetryTime:  svc.cfg.MinRetryTime,
+	})
+	if err != nil {
+		svc.cfg.Log.Info("username or userarn already exists", "username", mapUser.Username, "userarn", mapUser.UserARN)
+	}
+	return err
+}
+
 // UpsertMapUser upserts a MapUser into the configmap keyed by username.
-func (svc impl) UpsertMapUser(username string, mapUser MapUser) error {
+func (svc impl) UpsertMapUser(mapUser MapUser) error {
 	mapper := NewMapper(svc.cfg.KubeClient, false)
 	err := mapper.Upsert(&Arguments{
-		DataType: MapUserData,
-		UserARN:  mapUser.UserARN,
-		// Username:      username,
-		CrdName:       username,
+		DataType:      MapUserData,
+		UserARN:       mapUser.UserARN,
 		Username:      mapUser.Username,
 		Groups:        mapUser.Groups,
 		WithRetries:   svc.cfg.WithRetries,
@@ -124,30 +143,30 @@ func (svc impl) UpsertMapUser(username string, mapUser MapUser) error {
 		MinRetryTime:  svc.cfg.MinRetryTime,
 	})
 	if err != nil {
-		svc.cfg.Log.Error(err, "failure to upsert mapUser", "username", username)
+		svc.cfg.Log.Error(err, "failure to upsert mapUser", "username", mapUser.Username, "userarn", mapUser.UserARN)
 	}
 	return err
 }
 
 // RemoveMapUser removes a MapUser from the configmap keyed by username.
-func (svc impl) RemoveMapUser(username string) error {
+func (svc impl) RemoveMapUser(mapUser MapUser) error {
 	mapper := NewMapper(svc.cfg.KubeClient, false)
 	err := mapper.Remove(&Arguments{
-		DataType: MapUserData,
-		//Username: username,
-		CrdName:       username,
+		DataType:      MapUserData,
+		Username:      mapUser.Username,
+		UserARN:       mapUser.UserARN,
 		WithRetries:   svc.cfg.WithRetries,
 		MaxRetryCount: svc.cfg.MaxRetryCount,
 		MaxRetryTime:  svc.cfg.MaxRetryTime,
 		MinRetryTime:  svc.cfg.MinRetryTime,
 	})
 	if err != nil {
-		svc.cfg.Log.Info("mapUser not found", "username", username)
+		svc.cfg.Log.Info("mapUser not found", "username", mapUser.Username, "userarn", mapUser.UserARN)
 	}
 	return err
 }
 
-func (svc impl) CheckAccountExists(mapAccount MapAccount) error {
+func (svc impl) CheckMapAccountExists(mapAccount MapAccount) error {
 	svc.cfg.Log.Info("CheckAccountExists", "accountid", mapAccount.AccountID)
 	mapper := NewMapper(svc.cfg.KubeClient, false)
 	err := mapper.CheckExists(&Arguments{

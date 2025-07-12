@@ -102,8 +102,7 @@ func (r *MapUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 			}
 		} else {
 			// Ensure that any changes are synced to the kube-system:aws-auth ConfigMap.
-			if err := awsauthSvc.UpsertMapUser(mapUser.Name, awsauth.MapUser{
-				CrdName:  mapUser.Name,
+			if err := awsauthSvc.UpsertMapUser(awsauth.MapUser{
 				Username: mapUser.Spec.Username,
 				UserARN:  mapUser.Spec.UserARN,
 				Groups:   mapUser.Spec.Groups,
@@ -116,7 +115,11 @@ func (r *MapUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	} else {
 		log.Info("mapUser is being deleted")
 		if controllerutil.ContainsFinalizer(mapUser, awsauth.CrdFinalizerName) {
-			if err := awsauthSvc.RemoveMapUser(mapUserName); err != nil {
+			if err := awsauthSvc.RemoveMapUser(awsauth.MapUser{
+				Username: mapUser.Spec.Username,
+				UserARN:  mapUser.Spec.UserARN,
+				Groups:   mapUser.Spec.Groups,
+			}); err != nil {
 				log.Error(err, "failure removing mapUser data in aws-auth configmap")
 				return ctrl.Result{}, nil
 			}
@@ -126,8 +129,10 @@ func (r *MapUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 				return ctrl.Result{}, err
 			}
 		}
+		log.Info("removed mapUser data in aws-auth configmap")
+		return ctrl.Result{}, nil
 	}
-	log.Info("removed mapUser data in aws-auth configmap")
+
 	return ctrl.Result{}, nil
 }
 

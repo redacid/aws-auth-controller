@@ -19,3 +19,5 @@ cd ./config/samples kubectl apply -f aws-auth_v1beta1_mapaccount.yaml -n kube-sy
 
 https://book.kubebuilder.io/reference/using-finalizers
 https://book.kubebuilder.io/reference/markers/crd-validation
+
+https://github.com/gp42/aws-auth-operator

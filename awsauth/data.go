@@ -197,7 +197,6 @@ func NewMapRole(rolearn, username string, groups []string) *MapRole {
 // MapUser is the basic structure of a mapUsers authentication object
 
 type MapUser struct {
-	CrdName  string   `yaml:"crdname"`
 	UserARN  string   `yaml:"userarn"`
 	Username string   `yaml:"username"`
 	Groups   []string `yaml:"groups,omitempty"`
@@ -232,9 +231,8 @@ func (r *MapUser) SetUsername(v string) *MapUser {
 }
 
 // NewMapUser returns a new NewMapUser
-func NewMapUser(crdname, userarn, username string, groups []string) *MapUser {
+func NewMapUser(userarn, username string, groups []string) *MapUser {
 	return &MapUser{
-		CrdName:  crdname,
 		UserARN:  userarn,
 		Username: username,
 		Groups:   groups,

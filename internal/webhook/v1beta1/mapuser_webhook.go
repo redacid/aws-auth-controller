@@ -19,7 +19,7 @@ package v1beta1
 import (
 	"context"
 	"fmt"
-	"github.com/redacid/aws-auth-controller/awsauth"
+
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
@@ -27,8 +27,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
 	awsauthv1beta1 "github.com/redacid/aws-auth-controller/api/v1beta1"
-	_ "github.com/redacid/aws-auth-controller/awsauth"
-	_ "github.com/redacid/aws-auth-controller/kube"
+	"github.com/redacid/aws-auth-controller/awsauth"
+	"github.com/redacid/aws-auth-controller/kube"
 )
 
 // nolint:unused
@@ -103,26 +103,43 @@ func (v *MapUserCustomValidator) ValidateCreate(_ context.Context, obj runtime.O
 		"Namespace", mapuser.GetNamespace(),
 	)
 
+	kubeClient, err := kube.GetClient()
+	if err != nil {
+		mapuserlog.Error(err, "Failure getting kube client")
+		return nil, err
+	}
+
+	// Get a new aws auth service object.
+	awsauthSvc, err := awsauth.NewService(&awsauth.ServiceConfig{
+		KubeClient: kubeClient,
+		Log:        ctrl.Log,
+	})
+	if err != nil {
+		mapuserlog.Error(err, "Failure creating new aws auth service")
+		return nil, err
+	}
+
 	if awsauth.CrdItemAllowedNamespace != "" {
 		if mapuser.GetNamespace() != awsauth.CrdItemAllowedNamespace {
 			mapuserlog.Error(nil, "Namespace "+mapuser.GetNamespace()+" is NOT allowed for creation MapUser")
 			return nil, fmt.Errorf("namespace %s is NOT allowed for creation MapUser", mapuser.GetNamespace())
 		}
 	}
-	// Validate fields
-	//if err := awsauth.VerifyUserARN(mapuser.Spec.UserARN); err != nil {
-	//	return nil, err
-	//}
 
 	if err := awsauth.VerifyUsername(mapuser.Spec.Username, awsauth.UsernameMustBeEmail); err != nil {
 		return nil, err
 	}
 
-	//if err := awsauth.VerifyGroups(mapuser.Spec.Groups); err != nil {
-	//	return nil, err
-	//}
-
-	// TODO(user): fill in your validation logic upon object creation.
+	if err := awsauthSvc.CheckMapUserExists(awsauth.MapUser{
+		Username: mapuser.Spec.Username,
+		UserARN:  mapuser.Spec.UserARN,
+		Groups:   mapuser.Spec.Groups,
+	}); err != nil {
+		mapuserlog.Info("Failure checking, username or userarn exists in aws-auth configmap")
+		return nil, fmt.Errorf("failure checking, username %v or userarn %v exists in aws-auth configmap", mapuser.Spec.Username, mapuser.Spec.UserARN)
+	} else {
+		mapuserlog.Info("username and userarn not exists in aws-auth configmap")
+	}
 
 	return nil, nil
 }
@@ -152,24 +169,16 @@ func (v *MapUserCustomValidator) ValidateUpdate(_ context.Context, oldObj, newOb
 		"Namespace", mapuser.GetNamespace(),
 	)
 
-	if mapuser.GetNamespace() != "kube-system" {
-		mapuserlog.Error(nil, "Namespace "+mapuser.GetNamespace()+" is NOT allowed for creation MapUser")
-		return nil, fmt.Errorf("namespace %s is NOT allowed for creation MapUser", mapuser.GetNamespace())
+	if (mapuser.Spec.Username != oldmapuser.Spec.Username) && (mapuser.Spec.Username != "") {
+		return nil, fmt.Errorf("Username cannot be changed, pls create a new MapUser with the new Username, only change Groups allowed")
 	}
-	// Validate fields
-	if err := awsauth.VerifyUserARN(mapuser.Spec.UserARN); err != nil {
-		return nil, err
-	}
-
-	if err := awsauth.VerifyUsername(mapuser.Spec.Username, awsauth.UsernameMustBeEmail); err != nil {
-		return nil, err
+	if (mapuser.Spec.UserARN != oldmapuser.Spec.UserARN) && (mapuser.Spec.UserARN != "") {
+		return nil, fmt.Errorf("UserARN cannot be changed, pls create a new MapUser with the new UserARN, only change Groups allowed")
 	}
 
 	if err := awsauth.VerifyGroups(mapuser.Spec.Groups); err != nil {
 		return nil, err
 	}
-
-	// TODO(user): fill in your validation logic upon object update.
 
 	return nil, nil
 }

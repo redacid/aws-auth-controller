@@ -4,14 +4,14 @@ metadata:
   labels:
     app.kubernetes.io/name: aws-auth-controller-prozorro
     app.kubernetes.io/managed-by: kustomize
-  name: test
+  name: user1
 spec:
   description: A test mapuser
-  username: test.user@ios.in.ua
+  username: user1@ios.in.ua
   groups:
     - system:masters
     - admins
-  userarn: arn:aws:iam::123456789012:user/sample-mapuser
+  userarn: arn:aws:iam::123456789012:user/user1
 
 ---
 apiVersion: aws-auth.prozorro.sale/v1beta1
@@ -20,11 +20,27 @@ metadata:
   labels:
     app.kubernetes.io/name: aws-auth-controller-prozorro
     app.kubernetes.io/managed-by: kustomize
-  name: test2
+  name: user2
 spec:
   description: A test mapuser
-  username: test2.user@ios.in.ua
+  username: user2@ios.in.ua
   groups:
     - system:masters
     - admins
-  userarn: arn:aws:iam::123456789012:user/sample-mapuser2
+  userarn: arn:aws:iam::123456789012:user/user2
+
+---
+apiVersion: aws-auth.prozorro.sale/v1beta1
+kind: MapUser
+metadata:
+  labels:
+    app.kubernetes.io/name: aws-auth-controller-prozorro
+    app.kubernetes.io/managed-by: kustomize
+  name: user3
+spec:
+  description: A test mapuser
+  username: user3@ios.in.ua
+  groups:
+    - system:masters
+    - users
+  userarn: arn:aws:iam::123456789012:user/user2
