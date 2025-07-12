@@ -73,9 +73,9 @@ func (args *Arguments) Validate() {
 type OperationType string
 
 const (
-	UpsertOperation      OperationType = "upsert"
-	RemoveOperation      OperationType = "remove"
-	CheckExistsOperation OperationType = "checkExists"
+	UpsertOperation OperationType = "upsert"
+	RemoveOperation OperationType = "remove"
+	// CheckExistsOperation OperationType = "checkExists"
 )
 
 // DataType indicates the auth map management scope.
@@ -105,7 +105,8 @@ type Mapper struct {
 
 // Remove removes a mapRole or mapUser from the auth map.
 func (m *Mapper) Remove(args *Arguments) error {
-	args.Validate()
+	// TODO Remove this validate
+	// args.Validate()
 	if args.WithRetries {
 		return WithRetry(m.removeAuth, args)
 	}
@@ -243,7 +244,7 @@ func existsUser(authMaps []*MapUser, resource *MapUser) (error, bool) {
 // Upsert updates or inserts a mapRole or mapUser item into the auth map.
 func (m *Mapper) Upsert(args *Arguments) error {
 	// TODO Remove this validate
-	args.Validate()
+	// args.Validate()
 	if args.WithRetries {
 		return WithRetry(m.upsertAuth, args)
 	}
