@@ -19,7 +19,6 @@ package v1beta1
 import (
 	"context"
 	"fmt"
-	"github.com/redacid/aws-auth-controller/kube"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"time"
 
@@ -126,41 +125,40 @@ func (v *MapRoleCustomValidator) ValidateCreate(ctx context.Context, obj runtime
 		return nil, err
 	}
 	for _, existingUser := range mapRoleList.Items {
-		if existingUser.Spec.Username == maprole.Spec.Username ||
-			existingUser.Spec.RoleARN == maprole.Spec.RoleARN {
+		if existingUser.Spec.Username+existingUser.Spec.RoleARN == maprole.Spec.Username+maprole.Spec.RoleARN {
 			return nil, fmt.Errorf("duplicate user data found: username %s or rolearn %s already exists in another MapRole resource: %s",
 				maprole.Spec.Username, maprole.Spec.RoleARN, existingUser.GetName())
 		}
 	}
 	// -----
 
-	kubeClient, err := kube.GetClient()
-	if err != nil {
-		mapuserlog.Error(err, "Failure getting kube client")
-		return nil, err
-	}
+	/*	kubeClient, err := kube.GetClient()
+		if err != nil {
+			mapuserlog.Error(err, "Failure getting kube client")
+			return nil, err
+		}
 
-	// Get a new aws auth service object.
-	awsauthSvc, err := awsauth.NewService(&awsauth.ServiceConfig{
-		KubeClient:    kubeClient,
-		Log:           ctrl.Log,
-		MaxRetryCount: 5,
-	})
-	if err != nil {
-		mapuserlog.Error(err, "Failure creating new aws auth service")
-		return nil, err
-	}
+		// Get a new aws auth service object.
+		awsauthSvc, err := awsauth.NewService(&awsauth.ServiceConfig{
+			KubeClient:    kubeClient,
+			Log:           ctrl.Log,
+			MaxRetryCount: 5,
+		})
+		if err != nil {
+			mapuserlog.Error(err, "Failure creating new aws auth service")
+			return nil, err
+		}
 
-	if err := awsauthSvc.CheckMapRoleExists(awsauth.MapRole{
-		Username: maprole.Spec.Username,
-		RoleARN:  maprole.Spec.RoleARN,
-		Groups:   maprole.Spec.Groups,
-	}); err != nil {
-		mapuserlog.Info("Failure checking, username or userarn exists in aws-auth configmap")
-		return nil, fmt.Errorf("failure checking, username %v or rolearn %v exists in aws-auth configmap", maprole.Spec.Username, maprole.Spec.RoleARN)
-	} else {
-		mapuserlog.Info("username and rolearn not exists in aws-auth configmap")
-	}
+		if err := awsauthSvc.CheckMapRoleExists(awsauth.MapRole{
+			Username: maprole.Spec.Username,
+			RoleARN:  maprole.Spec.RoleARN,
+			Groups:   maprole.Spec.Groups,
+		}); err != nil {
+			mapuserlog.Info("Failure checking, username or userarn exists in aws-auth configmap")
+			return nil, fmt.Errorf("failure checking, username %v or rolearn %v exists in aws-auth configmap", maprole.Spec.Username, maprole.Spec.RoleARN)
+		} else {
+			mapuserlog.Info("username and rolearn not exists in aws-auth configmap")
+		}*/
 
 	return nil, nil
 }

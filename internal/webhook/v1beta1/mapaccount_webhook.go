@@ -23,7 +23,6 @@ import (
 	"time"
 
 	"github.com/redacid/aws-auth-controller/awsauth"
-	"github.com/redacid/aws-auth-controller/kube"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -130,30 +129,30 @@ func (v *MapAccountCustomValidator) ValidateCreate(ctx context.Context, obj runt
 	}
 	// -----
 
-	kubeClient, err := kube.GetClient()
-	if err != nil {
-		mapaccountlog.Error(err, "Failure getting kube client")
-		return nil, err
-	}
+	/*	kubeClient, err := kube.GetClient()
+		if err != nil {
+			mapaccountlog.Error(err, "Failure getting kube client")
+			return nil, err
+		}
 
-	// Get a new aws auth service object.
-	awsauthSvc, err := awsauth.NewService(&awsauth.ServiceConfig{
-		KubeClient: kubeClient,
-		// Log:        r.Log,
-		Log:           ctrl.Log,
-		MaxRetryCount: 5,
-	})
-	if err != nil {
-		mapaccountlog.Error(err, "Failure creating new aws auth service")
-		return nil, err
-	}
+		// Get a new aws auth service object.
+		awsauthSvc, err := awsauth.NewService(&awsauth.ServiceConfig{
+			KubeClient: kubeClient,
+			// Log:        r.Log,
+			Log:           ctrl.Log,
+			MaxRetryCount: 5,
+		})
+		if err != nil {
+			mapaccountlog.Error(err, "Failure creating new aws auth service")
+			return nil, err
+		}
 
-	if err = awsauthSvc.CheckMapAccountExists(awsauth.MapAccount{
-		AccountID: mapaccount.Spec.AccountID,
-	}); err != nil {
-		mapaccountlog.Info("Failure checking, account exists in aws-auth configmap")
-		return nil, fmt.Errorf("failure checking, accountid %v exists in aws-auth configmap", mapaccount.Spec.AccountID)
-	}
+		if err = awsauthSvc.CheckMapAccountExists(awsauth.MapAccount{
+			AccountID: mapaccount.Spec.AccountID,
+		}); err != nil {
+			mapaccountlog.Info("Failure checking, account exists in aws-auth configmap")
+			return nil, fmt.Errorf("failure checking, accountid %v exists in aws-auth configmap", mapaccount.Spec.AccountID)
+		}*/
 
 	return nil, nil
 }
@@ -181,6 +180,10 @@ func (v *MapAccountCustomValidator) ValidateDelete(_ context.Context, obj runtim
 		return nil, fmt.Errorf("expected a MapAccount object but got %T", obj)
 	}
 	mapaccountlog.Info("Validation for MapAccount upon deletion", "name", mapaccount.GetName(), "AccountID", mapaccount.Spec)
+
+	if mapaccount.Spec.AccountID == awsauth.MustPresentAccountID {
+		return nil, fmt.Errorf("cannot delete MapAccount with AccountID %s", awsauth.MustPresentAccountID)
+	}
 
 	return nil, nil
 }

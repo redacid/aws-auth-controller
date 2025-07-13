@@ -75,7 +75,7 @@ func main() {
 		"Enables checking of username, should it be an email address, default false."+
 			"Use --username-must-be-email=true to enable this feature.")
 	flag.StringVar(&mustPresentAccountID, "must-present-account-id", "", "This account must be "+
-		"allways present in ConfigMap, must-present-account-id=123456789012")
+		"allways present in ConfigMap, --must-present-account-id=123456789012")
 	flag.StringVar(&crdItemAllowedNamespace, "crd-item-allowed-namespace", "",
 		"Namespace where allowed creation of Resources --crd-item-allowed-namespace=kube-system,"+
 			"If is set, only in this namespace allowed creation of Resources,"+

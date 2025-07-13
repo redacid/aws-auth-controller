@@ -4,7 +4,7 @@ metadata:
   labels:
     app.kubernetes.io/name: aws-auth-controller-prozorro
     app.kubernetes.io/managed-by: kustomize
-  name: maprole-sample
+  name: maprole1
 spec:
   rolearn: arn:aws:iam::130488995195:role/prod-self-managed-node-group
   groups:
@@ -12,3 +12,20 @@ spec:
     - sample:group2
   description: A sample maprole
   username: system:node:{{EC2PrivateDNSName}}
+
+---
+
+apiVersion: aws-auth.prozorro.sale/v1beta1
+kind: MapRole
+metadata:
+  labels:
+    app.kubernetes.io/name: aws-auth-controller-prozorro
+    app.kubernetes.io/managed-by: kustomize
+  name: maprole2
+spec:
+  rolearn: arn:aws:iam::130488995195:role/prod-self-managed-node-group2
+  groups:
+    - sample:group1
+    - sample:group2
+  description: A sample maprole
+  username: system:node:{{EC2PrivateDNSName2}}

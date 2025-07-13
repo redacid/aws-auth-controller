@@ -19,7 +19,6 @@ package v1beta1
 import (
 	"context"
 	"fmt"
-
 	"time"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -31,7 +30,6 @@ import (
 
 	awsauthv1beta1 "github.com/redacid/aws-auth-controller/api/v1beta1"
 	"github.com/redacid/aws-auth-controller/awsauth"
-	"github.com/redacid/aws-auth-controller/kube"
 )
 
 // nolint:unused
@@ -134,37 +132,37 @@ func (v *MapUserCustomValidator) ValidateCreate(ctx context.Context, obj runtime
 	}
 	// -----
 
-	kubeClient, err := kube.GetClient()
-	if err != nil {
-		mapuserlog.Error(err, "Failure getting kube client")
-		return nil, err
-	}
-
-	// Get a new aws auth service object.
-	awsauthSvc, err := awsauth.NewService(&awsauth.ServiceConfig{
-		KubeClient:    kubeClient,
-		Log:           ctrl.Log,
-		MaxRetryCount: 5,
-	})
-	if err != nil {
-		mapuserlog.Error(err, "Failure creating new aws auth service")
-		return nil, err
-	}
-
 	if err := awsauth.VerifyUsername(mapuser.Spec.Username, awsauth.UsernameMustBeEmail); err != nil {
 		return nil, err
 	}
 
-	if err := awsauthSvc.CheckMapUserExists(awsauth.MapUser{
-		Username: mapuser.Spec.Username,
-		UserARN:  mapuser.Spec.UserARN,
-		Groups:   mapuser.Spec.Groups,
-	}); err != nil {
-		mapuserlog.Info("Failure checking, username or userarn exists in aws-auth configmap")
-		return nil, fmt.Errorf("failure checking, username %v or userarn %v exists in aws-auth configmap", mapuser.Spec.Username, mapuser.Spec.UserARN)
-	} else {
-		mapuserlog.Info("username and userarn not exists in aws-auth configmap")
-	}
+	/*		kubeClient, err := kube.GetClient()
+			if err != nil {
+				mapuserlog.Error(err, "Failure getting kube client")
+				return nil, err
+			}
+
+			// Get a new aws auth service object.
+			awsauthSvc, err := awsauth.NewService(&awsauth.ServiceConfig{
+				KubeClient:    kubeClient,
+				Log:           ctrl.Log,
+				MaxRetryCount: 5,
+			})
+			if err != nil {
+				mapuserlog.Error(err, "Failure creating new aws auth service")
+				return nil, err
+			}
+
+			if err := awsauthSvc.CheckMapUserExists(awsauth.MapUser{
+				Username: mapuser.Spec.Username,
+				UserARN:  mapuser.Spec.UserARN,
+				Groups:   mapuser.Spec.Groups,
+			}); err != nil {
+				mapuserlog.Info("Failure checking, username or userarn exists in aws-auth configmap")
+				return nil, fmt.Errorf("failure checking, username %v or userarn %v exists in aws-auth configmap", mapuser.Spec.Username, mapuser.Spec.UserARN)
+			} else {
+				mapuserlog.Info("username and userarn not exists in aws-auth configmap")
+			}*/
 
 	return nil, nil
 }
