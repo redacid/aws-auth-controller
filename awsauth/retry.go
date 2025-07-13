@@ -16,11 +16,11 @@ limitations under the License.
 package awsauth
 
 import (
-	"log"
-	"time"
-
 	"github.com/jpillora/backoff"
 	"github.com/pkg/errors"
+	"log"
+	"strings"
+	"time"
 )
 
 const (
@@ -30,7 +30,7 @@ const (
 
 // WithRetry runs the passed operation function with its arguments and retries
 // on failures until success or max number of retry attempts have failed.
-func WithRetry(fn func(*Arguments) error, args *Arguments) error {
+/*func WithRetry(fn func(*Arguments) error, args *Arguments) error {
 	var (
 		counter int
 		err     error
@@ -54,4 +54,34 @@ func WithRetry(fn func(*Arguments) error, args *Arguments) error {
 	}
 
 	return errors.Wrap(err, "waiter timed out")
+}*/
+func WithRetry(fn func(*Arguments) error, args *Arguments) error {
+	var (
+		counter int
+		err     error
+		bkoff   = &backoff.Backoff{
+			Min:    args.MinRetryTime,
+			Max:    args.MaxRetryTime,
+			Factor: defaultRetryerBackoffFactor,
+			Jitter: defaultRetryerBackoffJitter,
+		}
+	)
+
+	for counter < args.MaxRetryCount {
+		if err = fn(args); err != nil {
+			// Check if error is related to ConfigMap conflict
+			if strings.Contains(err.Error(), "the object has been modified") {
+				d := bkoff.Duration()
+				log.Printf("ConfigMap conflict detected: %v: will retry after %v", err, d)
+				time.Sleep(d)
+				counter++
+				continue
+			}
+			// Return immediately for other types of errors
+			return err
+		}
+		return nil
+	}
+
+	return errors.Wrap(err, "max retry attempts exceeded")
 }

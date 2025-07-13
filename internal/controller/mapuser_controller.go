@@ -18,6 +18,7 @@ package controller
 
 import (
 	"context"
+	"time"
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -73,7 +74,10 @@ func (r *MapUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		KubeClient: kubeClient,
 		// Log:        r.Log,
 		Log:           ctrl.Log,
+		WithRetries:   true,
 		MaxRetryCount: 5,
+		MinRetryTime:  time.Millisecond * 100,
+		MaxRetryTime:  time.Second * 3,
 	})
 	if err != nil {
 		log.Error(err, "failure creating new aws auth service")
