@@ -308,7 +308,7 @@ func (m *Mapper) upsertAuth(args *Arguments) error {
 		if ok {
 			log.Printf("%s with username '%s' key has been updated\n", args.DataType, args.Username)
 		} else {
-			log.Printf("%s with username '%s' key has been updated\n", args.DataType, args.Username)
+			log.Printf("no updates needed to %s with username '%s'\n", args.DataType, args.Username)
 		}
 		authData.SetMapUsers(newMap)
 	}
@@ -319,7 +319,7 @@ func (m *Mapper) upsertAuth(args *Arguments) error {
 		if ok {
 			log.Printf("%s with account id '%s' key has been updated\n", args.DataType, args.AccountID)
 		} else {
-			log.Printf("%s with account id '%s' key has been updated\n", args.DataType, args.AccountID)
+			log.Printf("no updates needed to %s with account id '%s'\n", args.DataType, args.AccountID)
 		}
 		authData.SetMapAccounts(newMap)
 	}
