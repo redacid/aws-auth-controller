@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"github.com/redacid/aws-auth-controller/kube"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"time"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -96,6 +97,9 @@ var _ webhook.CustomValidator = &MapRoleCustomValidator{}
 
 // ValidateCreate implements webhook.CustomValidator so a webhook will be registered for the type MapRole.
 func (v *MapRoleCustomValidator) ValidateCreate(ctx context.Context, obj runtime.Object) (admission.Warnings, error) {
+	// This wait need for write to configmap
+	time.Sleep(100 * time.Millisecond)
+
 	maprole, ok := obj.(*awsauthv1beta1.MapRole)
 	if !ok {
 		return nil, fmt.Errorf("expected a MapRole object but got %T", obj)
@@ -200,7 +204,7 @@ func (v *MapRoleCustomValidator) ValidateUpdate(_ context.Context, oldObj, newOb
 }
 
 // ValidateDelete implements webhook.CustomValidator so a webhook will be registered for the type MapRole.
-func (v *MapRoleCustomValidator) ValidateDelete(ctx context.Context, obj runtime.Object) (admission.Warnings, error) {
+func (v *MapRoleCustomValidator) ValidateDelete(_ context.Context, obj runtime.Object) (admission.Warnings, error) {
 	maprole, ok := obj.(*awsauthv1beta1.MapRole)
 	if !ok {
 		return nil, fmt.Errorf("expected a MapRole object but got %T", obj)
