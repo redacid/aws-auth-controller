@@ -37,10 +37,10 @@ type ServiceConfig struct {
 // Service provides aws-auth configmap management behavior.
 type Service interface {
 	// UpsertMapRole upserts a MapRole into the configmap keyed by username.
-	UpsertMapRole(username string, mapRole MapRole) error
+	UpsertMapRole(mapRole MapRole) error
 
 	// RemoveMapRole removes a MapRole from the configmap by keyed by username
-	RemoveMapRole(username string) error
+	RemoveMapRole(mapRole MapRole) error
 
 	// UpsertMapUser upserts a MapUser into the configmap keyed by username.
 	UpsertMapUser(mapUser MapUser) error
@@ -53,6 +53,9 @@ type Service interface {
 
 	// CheckMapUserExists checks if an MapUser with the specified username and userarn ID exists.
 	CheckMapUserExists(mapUser MapUser) error
+
+	// CheckMapRoleExists checks if an MapRole with the specified username and rolearn ID exists.
+	CheckMapRoleExists(mapRole MapRole) error
 
 	// UpsertMapAccount upserts a mapAccount into the configmap keyed by username.
 	UpsertMapAccount(mapAccount MapAccount) error
@@ -75,13 +78,31 @@ type impl struct {
 	cfg ServiceConfig
 }
 
+func (svc impl) CheckMapRoleExists(mapRole MapRole) error {
+	svc.cfg.Log.Info("CheckMapRoleExists", "username", mapRole.Username, "rolearn", mapRole.RoleARN)
+	mapper := NewMapper(svc.cfg.KubeClient, false)
+	err := mapper.CheckExists(&Arguments{
+		DataType:      MapRoleData,
+		Username:      mapRole.Username,
+		UserARN:       mapRole.RoleARN,
+		WithRetries:   svc.cfg.WithRetries,
+		MaxRetryCount: svc.cfg.MaxRetryCount,
+		MaxRetryTime:  svc.cfg.MaxRetryTime,
+		MinRetryTime:  svc.cfg.MinRetryTime,
+	})
+	if err != nil {
+		svc.cfg.Log.Info("username or rolearn already exists", "username", mapRole.Username, "rolearn", mapRole.RoleARN)
+	}
+	return err
+}
+
 // UpsertMapRole upserts a MapRole into the configmap keyed by username.
-func (svc impl) UpsertMapRole(username string, mapRole MapRole) error {
+func (svc impl) UpsertMapRole(mapRole MapRole) error {
 	mapper := NewMapper(svc.cfg.KubeClient, false)
 	err := mapper.Upsert(&Arguments{
 		DataType:      MapRoleData,
 		RoleARN:       mapRole.RoleARN,
-		Username:      username,
+		Username:      mapRole.Username,
 		Groups:        mapRole.Groups,
 		WithRetries:   svc.cfg.WithRetries,
 		MaxRetryCount: svc.cfg.MaxRetryCount,
@@ -89,24 +110,33 @@ func (svc impl) UpsertMapRole(username string, mapRole MapRole) error {
 		MinRetryTime:  svc.cfg.MinRetryTime,
 	})
 	if err != nil {
-		svc.cfg.Log.Error(err, "failure to upsert mapRole", "username", username)
+		svc.cfg.Log.Error(err, "failure to upsert mapRole",
+			"username", mapRole.Username,
+			"rolearn", mapRole.RoleARN,
+			"groups", mapRole.Groups,
+		)
 	}
 	return err
 }
 
 // RemoveMapRole removes a MapRole from the configmap keyed by username.
-func (svc impl) RemoveMapRole(username string) error {
+func (svc impl) RemoveMapRole(mapRole MapRole) error {
 	mapper := NewMapper(svc.cfg.KubeClient, false)
 	err := mapper.Remove(&Arguments{
 		DataType:      MapRoleData,
-		Username:      username,
+		Username:      mapRole.Username,
+		RoleARN:       mapRole.RoleARN,
+		Groups:        mapRole.Groups,
 		WithRetries:   svc.cfg.WithRetries,
 		MaxRetryCount: svc.cfg.MaxRetryCount,
 		MaxRetryTime:  svc.cfg.MaxRetryTime,
 		MinRetryTime:  svc.cfg.MinRetryTime,
 	})
 	if err != nil {
-		svc.cfg.Log.Info("mapRole not found", "username", username)
+		svc.cfg.Log.Info("mapRole not found",
+			"username", mapRole.Username,
+			"rolearn", mapRole.RoleARN,
+			"groups", mapRole.Groups)
 	}
 	return err
 }

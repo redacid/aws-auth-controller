@@ -137,9 +137,6 @@ func VerifyGroups(groups []string) error {
 		return fmt.Errorf("at least one group must be specified")
 	}
 
-	// Regular expression for DNS label format validation
-	// groupPattern := `^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$`
-
 	for _, group := range groups {
 		if group == "" {
 			return fmt.Errorf("group name cannot be empty")
@@ -148,11 +145,6 @@ func VerifyGroups(groups []string) error {
 		if len(group) > 253 {
 			return fmt.Errorf("group name cannot be longer than 253 characters: %s", group)
 		}
-
-		// matched, _ := regexp.MatchString(groupPattern, group)
-		// if !matched {
-		//  	return fmt.Errorf("invalid group name format: %s. Group must be DNS-compatible", group)
-		// }
 	}
 
 	return nil

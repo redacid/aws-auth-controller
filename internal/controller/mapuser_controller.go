@@ -57,7 +57,6 @@ func (r *MapUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	_ = logf.FromContext(ctx)
 
 	// MapUser objects are named by their associated AWS IAM user ARNs.
-	// mapUserName := req.Name
 	mapUserName := req.Name
 	log := ctrl.Log.WithValues("MapUser", mapUserName)
 	// log := r. Log.WithValues("MapUser", mapUserName)
@@ -94,10 +93,10 @@ func (r *MapUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		return ctrl.Result{}, nil
 	}
 	if mapUser.DeletionTimestamp.IsZero() {
-		logf.Log.Info("mapAccount is not being deleted")
+		logf.Log.Info("mapUser is not being deleted")
 		// Add finalizer
 		if !controllerutil.ContainsFinalizer(mapUser, awsauth.CrdFinalizerName) {
-			logf.Log.Info("mapAccount is not being deleted, so adding finalizer")
+			logf.Log.Info("mapUser is not being deleted, so adding finalizer")
 			controllerutil.AddFinalizer(mapUser, awsauth.CrdFinalizerName)
 			if err := r.Update(ctx, mapUser); err != nil {
 				return ctrl.Result{}, err

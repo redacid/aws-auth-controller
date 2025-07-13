@@ -18,6 +18,7 @@ package controller
 
 import (
 	"context"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -86,24 +87,51 @@ func (r *MapRoleReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 			log.Error(err, "failure getting MapRole")
 			return ctrl.Result{}, err
 		}
-
-		if err := awsauthSvc.RemoveMapRole(mapRoleName); err != nil {
-			log.Error(err, "error removing mapRole data in aws-auth configmap")
-			return ctrl.Result{}, nil
-		}
 		log.Info("removed mapRole data in aws-auth configmap")
 		return ctrl.Result{}, nil
 	}
 
-	// Ensure that any changes are synced to the kube-system:aws-auth ConfigMap.
-	if err := awsauthSvc.UpsertMapRole(mapRole.Name, awsauth.MapRole{
-		RoleARN: mapRole.Spec.RoleARN,
-		Groups:  mapRole.Spec.Groups,
-	}); err != nil {
-		log.Error(err, "error upserting MapRole in aws-auth")
-		return ctrl.Result{}, err
+	if mapRole.DeletionTimestamp.IsZero() {
+		logf.Log.Info("mapRole is not being deleted")
+		// Add finalizer
+		if !controllerutil.ContainsFinalizer(mapRole, awsauth.CrdFinalizerName) {
+			logf.Log.Info("mapRole is not being deleted, so adding finalizer")
+			controllerutil.AddFinalizer(mapRole, awsauth.CrdFinalizerName)
+			if err := r.Update(ctx, mapRole); err != nil {
+				return ctrl.Result{}, err
+			}
+		} else {
+			// Ensure that any changes are synced to the kube-system:aws-auth ConfigMap.
+			if err := awsauthSvc.UpsertMapRole(awsauth.MapRole{
+				Username: mapRole.Spec.Username,
+				RoleARN:  mapRole.Spec.RoleARN,
+				Groups:   mapRole.Spec.Groups,
+			}); err != nil {
+				log.Error(err, "failure upserting MapRole")
+				return ctrl.Result{}, err
+			}
+			log.Info("upserted MapRole")
+		}
+	} else {
+		log.Info("mapRole is being deleted")
+		if controllerutil.ContainsFinalizer(mapRole, awsauth.CrdFinalizerName) {
+			if err := awsauthSvc.RemoveMapRole(awsauth.MapRole{
+				Username: mapRole.Spec.Username,
+				RoleARN:  mapRole.Spec.RoleARN,
+				Groups:   mapRole.Spec.Groups,
+			}); err != nil {
+				log.Error(err, "failure removing mapRole data in aws-auth configmap")
+				return ctrl.Result{}, nil
+			}
+			logf.Log.Info("Removing finalizer")
+			controllerutil.RemoveFinalizer(mapRole, awsauth.CrdFinalizerName)
+			if err := r.Update(ctx, mapRole); err != nil {
+				return ctrl.Result{}, err
+			}
+		}
+		log.Info("removed mapRole data in aws-auth configmap")
+		return ctrl.Result{}, nil
 	}
-	log.Info("upserted MapRole")
 
 	return ctrl.Result{}, nil
 }

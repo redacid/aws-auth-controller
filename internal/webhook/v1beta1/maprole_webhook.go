@@ -19,6 +19,8 @@ package v1beta1
 import (
 	"context"
 	"fmt"
+	"github.com/redacid/aws-auth-controller/kube"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -36,8 +38,13 @@ var maprolelog = logf.Log.WithName("maprole-resource")
 
 // SetupMapRoleWebhookWithManager registers the webhook for MapRole in the manager.
 func SetupMapRoleWebhookWithManager(mgr ctrl.Manager) error {
+	validator := &MapRoleCustomValidator{
+		Client: mgr.GetClient(),
+	}
+
 	return ctrl.NewWebhookManagedBy(mgr).For(&awsauthv1beta1.MapRole{}).
-		WithValidator(&MapRoleCustomValidator{}).
+		// WithValidator(&MapRoleCustomValidator{}).
+		WithValidator(validator).
 		WithDefaulter(&MapRoleCustomDefaulter{}).
 		Complete()
 }
@@ -82,18 +89,25 @@ func (d *MapRoleCustomDefaulter) Default(_ context.Context, obj runtime.Object) 
 // NOTE: The +kubebuilder:object:generate=false marker prevents controller-gen from generating DeepCopy methods,
 // as this struct is used only for temporary operations and does not need to be deeply copied.
 type MapRoleCustomValidator struct {
-	// TODO(user): Add more fields as needed for validation
+	Client client.Client
 }
 
 var _ webhook.CustomValidator = &MapRoleCustomValidator{}
 
 // ValidateCreate implements webhook.CustomValidator so a webhook will be registered for the type MapRole.
-func (v *MapRoleCustomValidator) ValidateCreate(_ context.Context, obj runtime.Object) (admission.Warnings, error) {
+func (v *MapRoleCustomValidator) ValidateCreate(ctx context.Context, obj runtime.Object) (admission.Warnings, error) {
 	maprole, ok := obj.(*awsauthv1beta1.MapRole)
 	if !ok {
 		return nil, fmt.Errorf("expected a MapRole object but got %T", obj)
 	}
-	maprolelog.Info("Validation for MapRole upon creation", "name", maprole.GetName())
+	maprolelog.Info("Validation for MapRole upon creation",
+		"name", maprole.GetName(),
+		"RoleARN", maprole.Spec.RoleARN,
+		"Username", maprole.Spec.Username,
+		"Description", maprole.Spec.Description,
+		"Groups", maprole.Spec.Groups,
+		"Namespace", maprole.GetNamespace(),
+	)
 
 	if awsauth.CrdItemAllowedNamespace != "" {
 		if maprole.GetNamespace() != awsauth.CrdItemAllowedNamespace {
@@ -102,7 +116,47 @@ func (v *MapRoleCustomValidator) ValidateCreate(_ context.Context, obj runtime.O
 		}
 	}
 
-	// TODO(user): fill in your validation logic upon object creation.
+	// -----
+	var mapRoleList awsauthv1beta1.MapRoleList
+	if err := v.Client.List(ctx, &mapRoleList); err != nil {
+		return nil, err
+	}
+	for _, existingUser := range mapRoleList.Items {
+		if existingUser.Spec.Username == maprole.Spec.Username ||
+			existingUser.Spec.RoleARN == maprole.Spec.RoleARN {
+			return nil, fmt.Errorf("duplicate user data found: username %s or rolearn %s already exists in another MapRole resource: %s",
+				maprole.Spec.Username, maprole.Spec.RoleARN, existingUser.GetName())
+		}
+	}
+	// -----
+
+	kubeClient, err := kube.GetClient()
+	if err != nil {
+		mapuserlog.Error(err, "Failure getting kube client")
+		return nil, err
+	}
+
+	// Get a new aws auth service object.
+	awsauthSvc, err := awsauth.NewService(&awsauth.ServiceConfig{
+		KubeClient:    kubeClient,
+		Log:           ctrl.Log,
+		MaxRetryCount: 5,
+	})
+	if err != nil {
+		mapuserlog.Error(err, "Failure creating new aws auth service")
+		return nil, err
+	}
+
+	if err := awsauthSvc.CheckMapRoleExists(awsauth.MapRole{
+		Username: maprole.Spec.Username,
+		RoleARN:  maprole.Spec.RoleARN,
+		Groups:   maprole.Spec.Groups,
+	}); err != nil {
+		mapuserlog.Info("Failure checking, username or userarn exists in aws-auth configmap")
+		return nil, fmt.Errorf("failure checking, username %v or rolearn %v exists in aws-auth configmap", maprole.Spec.Username, maprole.Spec.RoleARN)
+	} else {
+		mapuserlog.Info("username and rolearn not exists in aws-auth configmap")
+	}
 
 	return nil, nil
 }
@@ -110,12 +164,37 @@ func (v *MapRoleCustomValidator) ValidateCreate(_ context.Context, obj runtime.O
 // ValidateUpdate implements webhook.CustomValidator so a webhook will be registered for the type MapRole.
 func (v *MapRoleCustomValidator) ValidateUpdate(_ context.Context, oldObj, newObj runtime.Object) (admission.Warnings, error) {
 	maprole, ok := newObj.(*awsauthv1beta1.MapRole)
+	oldmaprole, _ := oldObj.(*awsauthv1beta1.MapRole)
 	if !ok {
 		return nil, fmt.Errorf("expected a MapRole object for the newObj but got %T", newObj)
 	}
-	maprolelog.Info("Validation for MapRole upon update", "name", maprole.GetName())
+	maprolelog.Info("Validation for MapUser upon update OLD:",
+		"name", oldmaprole.GetName(),
+		"RoleARN", oldmaprole.Spec.RoleARN,
+		"Username", oldmaprole.Spec.Username,
+		"Description", oldmaprole.Spec.Description,
+		"Groups", oldmaprole.Spec.Groups,
+		"Namespace", oldmaprole.GetNamespace(),
+	)
+	maprolelog.Info("Validation for MapUser upon update NEW:",
+		"name", maprole.GetName(),
+		"RoleARN", maprole.Spec.RoleARN,
+		"Username", maprole.Spec.Username,
+		"Description", maprole.Spec.Description,
+		"Groups", maprole.Spec.Groups,
+		"Namespace", maprole.GetNamespace(),
+	)
 
-	// TODO(user): fill in your validation logic upon object update.
+	if (maprole.Spec.Username != oldmaprole.Spec.Username) && (maprole.Spec.Username != "") {
+		return nil, fmt.Errorf("username cannot be changed, pls create a new MapRole with the new Username, only change Groups allowed")
+	}
+	if (maprole.Spec.RoleARN != oldmaprole.Spec.RoleARN) && (maprole.Spec.RoleARN != "") {
+		return nil, fmt.Errorf("RoleARN cannot be changed, pls create a new MapRole with the new RoleARN, only change Groups allowed")
+	}
+
+	if err := awsauth.VerifyGroups(maprole.Spec.Groups); err != nil {
+		return nil, err
+	}
 
 	return nil, nil
 }

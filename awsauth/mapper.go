@@ -201,6 +201,20 @@ func (m *Mapper) existsAuth(args *Arguments) error {
 			return nil
 		}
 	}
+
+	if args.DataType == MapRoleData {
+		log.Printf("authData.MapRoles: %v\n", authData.MapRoles)
+		mapRole := NewMapRole(args.RoleARN, args.Username, args.Groups)
+		err, exists := existsRole(authData.MapRoles, mapRole)
+		if exists {
+			log.Printf("%v", err)
+			return err
+		} else {
+			log.Printf("%s with username '%s' or rolearn '%s' not exists\n", args.DataType, args.Username, args.RoleARN)
+			return nil
+		}
+	}
+
 	return nil
 }
 
@@ -233,6 +247,26 @@ func existsUser(authMaps []*MapUser, resource *MapUser) (error, bool) {
 		} else if existing.UserARN == resource.UserARN {
 			found = true
 			return fmt.Errorf("existsUser: userarn  '%s' already exists", resource.UserARN), found
+		} else {
+			found = false
+			// return nil, found
+		}
+	}
+	return nil, found
+}
+
+func existsRole(authMaps []*MapRole, resource *MapRole) (error, bool) {
+	var found = false
+	log.Printf("existsRole check: username: %v rolearn:%v \n", resource.Username, resource.RoleARN)
+	for _, existing := range authMaps {
+		log.Printf("existsRole: cm username: %v rolearn: %v \n", existing.Username, existing.RoleARN)
+		log.Printf("existsRole: new username: %v rolearn: %v \n", resource.Username, resource.RoleARN)
+		if existing.Username == resource.Username {
+			found = true
+			return fmt.Errorf("existsRole: username  '%s' already exists", resource.Username), found
+		} else if existing.RoleARN == resource.RoleARN {
+			found = true
+			return fmt.Errorf("existsRole: rolearn  '%s' already exists", resource.RoleARN), found
 		} else {
 			found = false
 			// return nil, found
