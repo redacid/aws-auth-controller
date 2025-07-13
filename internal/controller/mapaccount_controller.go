@@ -123,7 +123,7 @@ func (r *MapAccountReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 				log.Error(err, "Failure removing mapAccount data in aws-auth configmap")
 				return ctrl.Result{}, nil
 			}
-			logf.Log.Info("mapAccount is being deleted, so removing finalizer")
+			logf.Log.Info("Removing finalizer")
 			controllerutil.RemoveFinalizer(mapAccount, awsauth.CrdFinalizerName)
 			if err := r.Update(ctx, mapAccount); err != nil {
 				return ctrl.Result{}, err

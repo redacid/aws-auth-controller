@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
-	// "k8s.io/client-go/kubernetes"
 )
 
 var AllowedAWSAccounts = []string{
@@ -40,7 +39,7 @@ func VerifyAWSAccount(accountID string) error {
 	return nil
 }
 
-// VerifyAWSAccountID verifies if the AWS account ID is allowed
+// VerifyAWSAccountIDArn VerifyAWSAccountID verifies if the AWS account ID is allowed
 func VerifyAWSAccountIDArn(arn string) error {
 	// Extract account ID from ARN
 	arnParts := strings.Split(arn, ":")
@@ -172,3 +171,38 @@ func SetAllowedAWSAccounts(accounts []string) error {
 	AllowedAWSAccounts = accounts
 	return nil
 }
+
+// ConvertMapAccountToString конвертує MapAccountSpec в строку accountid
+func ConvertMapAccountToString(accounts []*MapAccount) []string {
+	result := make([]string, len(accounts))
+	for i, account := range accounts {
+		result[i] = account.AccountID
+	}
+	return result
+}
+
+// ConvertStringToMapAccount конвертує строки accountid в MapAccountSpec
+func ConvertStringToMapAccount(accountIDs []string) []*MapAccount {
+	result := make([]*MapAccount, len(accountIDs))
+	for i, accountID := range accountIDs {
+		result[i] = &MapAccount{
+			AccountID: accountID,
+		}
+	}
+	return result
+}
+
+/*
+	// Конвертація з MapAccountSpec в строки
+	specs := []MapAccountSpec{
+	{AccountID: "111111111111"},
+	{AccountID: "222222222222"},
+	}
+	strings := ConvertMapAccountToString(specs)
+	// результат: []string{"111111111111", "222222222222"}
+
+	// Конвертація зі строк в MapAccountSpec
+	accountIDs := []string{"111111111111", "222222222222"}
+	specs = ConvertStringToMapAccount(accountIDs)
+	// результат: []MapAccountSpec{{AccountID: "111111111111"}, {AccountID: "222222222222"}}
+*/

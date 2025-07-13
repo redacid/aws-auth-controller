@@ -69,7 +69,8 @@ func (r *MapRoleReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	awsauthSvc, err := awsauth.NewService(&awsauth.ServiceConfig{
 		KubeClient: kubeClient,
 		// Log:        r.Log,
-		Log: ctrl.Log,
+		Log:           ctrl.Log,
+		MaxRetryCount: 5,
 	})
 	if err != nil {
 		log.Error(err, "failure creating new aws auth service")

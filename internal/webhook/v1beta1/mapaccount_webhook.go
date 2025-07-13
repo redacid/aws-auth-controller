@@ -42,7 +42,7 @@ var (
 
 // SetupMapAccountWebhookWithManager registers the webhook for MapAccount in the manager.
 func SetupMapAccountWebhookWithManager(mgr ctrl.Manager) error {
-	validator := &MapUserCustomValidator{
+	validator := &MapAccountCustomValidator{
 		Client: mgr.GetClient(),
 	}
 	return ctrl.NewWebhookManagedBy(mgr).For(&awsauthv1beta1.MapAccount{}).
@@ -140,7 +140,8 @@ func (v *MapAccountCustomValidator) ValidateCreate(ctx context.Context, obj runt
 	awsauthSvc, err := awsauth.NewService(&awsauth.ServiceConfig{
 		KubeClient: kubeClient,
 		// Log:        r.Log,
-		Log: ctrl.Log,
+		Log:           ctrl.Log,
+		MaxRetryCount: 5,
 	})
 	if err != nil {
 		mapaccountlog.Error(err, "Failure creating new aws auth service")

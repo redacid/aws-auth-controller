@@ -19,6 +19,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"sync"
 
 	"gopkg.in/yaml.v2"
 	kcorev1 "k8s.io/api/core/v1"
@@ -45,6 +46,7 @@ var (
 	// TODO automatic add to configmap
 	MustPresentAccountID    string = ""
 	CrdItemAllowedNamespace string = ""
+	configMapMutex          sync.RWMutex
 )
 
 type ControllerArgs struct {
@@ -63,6 +65,8 @@ func DeclareVariables(controllerArgs ControllerArgs) {
 
 // ReadAuthMap reads the auth ConfigMap and returns AwsAuthData and the read ConfigMap.
 func ReadAuthMap(k kubernetes.Interface) (AwsAuthData, *kcorev1.ConfigMap, error) {
+	configMapMutex.RLock()
+	defer configMapMutex.RUnlock()
 
 	var authData AwsAuthData
 
@@ -83,10 +87,17 @@ func ReadAuthMap(k kubernetes.Interface) (AwsAuthData, *kcorev1.ConfigMap, error
 		return authData, cm, err
 	}
 
-	err = yaml.Unmarshal([]byte(cm.Data["mapAccounts"]), &authData.MapAccounts)
+	/*err = yaml.Unmarshal([]byte(cm.Data["mapAccounts"]), &authData.MapAccounts)
+	if err != nil {
+		return authData, cm, err
+	}*/
+
+	var accountIDs []string
+	err = yaml.Unmarshal([]byte(cm.Data["mapAccounts"]), &accountIDs)
 	if err != nil {
 		return authData, cm, err
 	}
+	authData.MapAccounts = ConvertStringToMapAccount(accountIDs)
 
 	err = yaml.Unmarshal([]byte(cm.Data["mapUsers"]), &authData.MapUsers)
 	return authData, cm, err
@@ -109,6 +120,9 @@ func CreateAuthMap(k kubernetes.Interface) (*kcorev1.ConfigMap, error) {
 
 // UpdateAuthMap updates a given ConfigMap
 func UpdateAuthMap(k kubernetes.Interface, authData AwsAuthData, cm *kcorev1.ConfigMap) error {
+	configMapMutex.Lock()
+	defer configMapMutex.Unlock()
+
 	mapRoles, err := yaml.Marshal(authData.MapRoles)
 	if err != nil {
 		return err
@@ -119,7 +133,7 @@ func UpdateAuthMap(k kubernetes.Interface, authData AwsAuthData, cm *kcorev1.Con
 		return err
 	}
 
-	mapAccounts, err := yaml.Marshal(authData.MapAccounts)
+	mapAccounts, err := yaml.Marshal(ConvertMapAccountToString(authData.MapAccounts))
 	if err != nil {
 		return err
 	}

@@ -142,8 +142,9 @@ func (v *MapUserCustomValidator) ValidateCreate(ctx context.Context, obj runtime
 
 	// Get a new aws auth service object.
 	awsauthSvc, err := awsauth.NewService(&awsauth.ServiceConfig{
-		KubeClient: kubeClient,
-		Log:        ctrl.Log,
+		KubeClient:    kubeClient,
+		Log:           ctrl.Log,
+		MaxRetryCount: 5,
 	})
 	if err != nil {
 		mapuserlog.Error(err, "Failure creating new aws auth service")
