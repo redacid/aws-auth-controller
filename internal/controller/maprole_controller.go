@@ -92,10 +92,10 @@ func (r *MapRoleReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	}
 
 	if mapRole.DeletionTimestamp.IsZero() {
-		logf.Log.Info("mapRole is not being deleted")
+		logf.Log.Info("mapRole is not being deleted: " + mapRole.Name)
 		// Add finalizer
 		if !controllerutil.ContainsFinalizer(mapRole, awsauth.CrdFinalizerName) {
-			logf.Log.Info("mapRole is not being deleted, so adding finalizer")
+			logf.Log.Info("Adding finalizer: " + mapRole.Name)
 			controllerutil.AddFinalizer(mapRole, awsauth.CrdFinalizerName)
 			if err := r.Update(ctx, mapRole); err != nil {
 				return ctrl.Result{}, err
@@ -107,29 +107,29 @@ func (r *MapRoleReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 				RoleARN:  mapRole.Spec.RoleARN,
 				Groups:   mapRole.Spec.Groups,
 			}); err != nil {
-				log.Error(err, "failure upserting MapRole")
+				log.Error(err, "failure upserting MapRole: "+mapRole.Name)
 				return ctrl.Result{}, err
 			}
-			log.Info("upserted MapRole")
+			log.Info("upserted MapRole: " + mapRole.Name)
 		}
 	} else {
-		log.Info("mapRole is being deleted")
+		log.Info("mapRole is being deleted: " + mapRole.Name)
 		if controllerutil.ContainsFinalizer(mapRole, awsauth.CrdFinalizerName) {
 			if err := awsauthSvc.RemoveMapRole(awsauth.MapRole{
 				Username: mapRole.Spec.Username,
 				RoleARN:  mapRole.Spec.RoleARN,
 				Groups:   mapRole.Spec.Groups,
 			}); err != nil {
-				log.Error(err, "failure removing mapRole data in aws-auth configmap")
+				log.Error(err, "failure removing mapRole data in aws-auth configmap: "+mapRole.Name)
 				return ctrl.Result{}, nil
 			}
-			logf.Log.Info("Removing finalizer")
+			logf.Log.Info("Removing finalizer: " + mapRole.Name)
 			controllerutil.RemoveFinalizer(mapRole, awsauth.CrdFinalizerName)
 			if err := r.Update(ctx, mapRole); err != nil {
 				return ctrl.Result{}, err
 			}
 		}
-		log.Info("removed mapRole data in aws-auth configmap")
+		log.Info("removed mapRole data in aws-auth configmap: " + mapRole.Name)
 		return ctrl.Result{}, nil
 	}
 

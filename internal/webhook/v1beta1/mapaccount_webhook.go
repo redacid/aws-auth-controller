@@ -182,7 +182,8 @@ func (v *MapAccountCustomValidator) ValidateDelete(_ context.Context, obj runtim
 	mapaccountlog.Info("Validation for MapAccount upon deletion", "name", mapaccount.GetName(), "AccountID", mapaccount.Spec)
 
 	if mapaccount.Spec.AccountID == awsauth.MustPresentAccountID {
-		return nil, fmt.Errorf("cannot delete MapAccount with AccountID %s", awsauth.MustPresentAccountID)
+		mapaccountlog.Info("cannot delete MapAccount is must-present-account-id", "AccountID", mapaccount.Spec.AccountID)
+		return nil, fmt.Errorf("cannot delete MapAccount with AccountID %s is must-present-account-id", mapaccount.Spec.AccountID)
 	}
 
 	return nil, nil

@@ -60,7 +60,7 @@ func (r *MapUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	mapUserName := req.Name
 	log := ctrl.Log.WithValues("MapUser", mapUserName)
 	// log := r. Log.WithValues("MapUser", mapUserName)
-	log.Info("")
+	log.Info("reconciling MapUser...")
 
 	kubeClient, err := kube.GetClient()
 	if err != nil {
@@ -93,10 +93,10 @@ func (r *MapUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		return ctrl.Result{}, nil
 	}
 	if mapUser.DeletionTimestamp.IsZero() {
-		logf.Log.Info("mapUser is not being deleted")
+		logf.Log.Info("mapUser is not being deleted: " + mapUser.Name)
 		// Add finalizer
 		if !controllerutil.ContainsFinalizer(mapUser, awsauth.CrdFinalizerName) {
-			logf.Log.Info("mapUser is not being deleted, so adding finalizer")
+			logf.Log.Info("Adding finalizer: " + mapUser.Name)
 			controllerutil.AddFinalizer(mapUser, awsauth.CrdFinalizerName)
 			if err := r.Update(ctx, mapUser); err != nil {
 				return ctrl.Result{}, err
@@ -108,29 +108,29 @@ func (r *MapUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 				UserARN:  mapUser.Spec.UserARN,
 				Groups:   mapUser.Spec.Groups,
 			}); err != nil {
-				log.Error(err, "failure upserting MapUser")
+				log.Error(err, "failure upserting MapUser: "+mapUser.Name)
 				return ctrl.Result{}, err
 			}
-			log.Info("upserted MapUser")
+			log.Info("upserted MapUser: " + mapUser.Name)
 		}
 	} else {
-		log.Info("mapUser is being deleted")
+		log.Info("mapUser is being deleted: " + mapUser.Name)
 		if controllerutil.ContainsFinalizer(mapUser, awsauth.CrdFinalizerName) {
 			if err := awsauthSvc.RemoveMapUser(awsauth.MapUser{
 				Username: mapUser.Spec.Username,
 				UserARN:  mapUser.Spec.UserARN,
 				Groups:   mapUser.Spec.Groups,
 			}); err != nil {
-				log.Error(err, "failure removing mapUser data in aws-auth configmap")
+				log.Error(err, "failure removing mapUser data in aws-auth configmap: "+mapUser.Name)
 				return ctrl.Result{}, nil
 			}
-			logf.Log.Info("Removing finalizer")
+			logf.Log.Info("Removing finalizer: " + mapUser.Name)
 			controllerutil.RemoveFinalizer(mapUser, awsauth.CrdFinalizerName)
 			if err := r.Update(ctx, mapUser); err != nil {
 				return ctrl.Result{}, err
 			}
 		}
-		log.Info("removed mapUser data in aws-auth configmap")
+		log.Info("removed mapUser data in aws-auth configmap: " + mapUser.Name)
 		return ctrl.Result{}, nil
 	}
 

@@ -1,6 +1,6 @@
 # Image URL to use all building/pushing image targets
 #IMG ?= controller:latest
-IMG ?= redacid/aws-auth-controller-dev:0.0.75
+IMG ?= redacid/aws-auth-controller-dev:0.0.79
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))

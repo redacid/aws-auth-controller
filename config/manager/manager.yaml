@@ -62,7 +62,7 @@ spec:
         - /manager
         args:
           - --config-map-name=aws-auth-test
-          - --must-present-account-id=123456789012
+          - --must-present-account-id=130488995195
           - --crd-item-allowed-namespace=kube-system
           #- --username-must-be-email
           - --leader-elect

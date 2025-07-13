@@ -18,16 +18,4 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
   name: account2
 spec:
-  accountid: "222222222222"
-
----
-
-apiVersion: aws-auth.prozorro.sale/v1beta1
-kind: MapAccount
-metadata:
-  labels:
-    app.kubernetes.io/name: aws-auth-controller-prozorro
-    app.kubernetes.io/managed-by: kustomize
-  name: account3
-spec:
-  accountid: "333333333333"
+  accountid: "130488995195"
