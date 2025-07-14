@@ -17,9 +17,10 @@ package awsauth
 
 import (
 	"fmt"
+	"github.com/go-logr/logr"
+	ctrl "sigs.k8s.io/controller-runtime"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
-	"io"
-	"log"
 	"reflect"
 	"time"
 
@@ -41,31 +42,34 @@ type Arguments struct {
 	MaxRetryCount int
 }
 
+var logger = ctrl.Log.WithName("mapper")
+
 // Validate validates if all Arguments fields are valid.
 func (args *Arguments) Validate() {
+
 	if args.WithRetries && args.MaxRetryCount < 1 {
-		log.Println("error: retry max count is invalid, must be greater than zero")
+		logger.Info("error: retry max count is invalid, must be greater than zero", "MaxRetryCount", args.MaxRetryCount)
 	}
 	if args.Username == "" {
-		log.Println("error: username not provided")
+		logger.Info("error: username not provided")
 	}
 	if args.OperationType == "" {
-		log.Println("error: operation type not provided")
+		logger.Info("error: operation type not provided")
 	}
 	if args.OperationType != UpsertOperation && args.OperationType != RemoveOperation {
-		log.Printf("error: operation type '%s' not valid\n", args.OperationType)
+		logger.Info("error: operation type '%s' not valid\n", args.OperationType)
 	}
 	if args.DataType == "" {
-		log.Println("error: data type not provided")
+		logger.Info("error: data type not provided")
 	}
 	if args.DataType != MapRoleData && args.DataType != MapUserData && args.DataType != MapAccountData {
-		log.Printf("error: data type '%s' not valid\n", args.DataType)
+		logger.Info("error: data type '%s' not valid\n", args.DataType)
 	}
 	if args.OperationType == UpsertOperation && args.DataType == MapRoleData && args.RoleARN == "" {
-		log.Println("error: role arn not provided")
+		logger.Info("error: role arn not provided")
 	}
 	if args.OperationType == UpsertOperation && args.DataType == MapUserData && args.UserARN == "" {
-		log.Println("error: user arn not provided")
+		logger.Info("error: user arn not provided")
 	}
 }
 
@@ -89,18 +93,19 @@ const (
 
 // NewMapper returns a new Mapper object.
 func NewMapper(client kubernetes.Interface, discardLogOutput bool) *Mapper {
-	var mapper = &Mapper{}
-	mapper.KubernetesClient = client
-
-	if discardLogOutput {
-		log.SetOutput(io.Discard)
+	var mapper = &Mapper{
+		KubernetesClient: client,
+		Log:              logf.Log.WithName("mapper"),
 	}
+
 	return mapper
+
 }
 
 // Mapper is responsible for managing the auth map.
 type Mapper struct {
 	KubernetesClient kubernetes.Interface
+	Log              logr.Logger
 }
 
 // Remove removes a mapRole or mapUser from the auth map.
@@ -178,39 +183,39 @@ func (m *Mapper) existsAuth(args *Arguments) error {
 	}
 
 	if args.DataType == MapAccountData {
-		log.Printf("authData.MapAccounts: %v\n", authData.MapAccounts)
+		m.Log.Info("existsAuth", "DataType", args.DataType, "AccountID", args.AccountID)
 		mapAccount := NewMapAccount(args.AccountID)
 		err, exists := existsAccount(authData.MapAccounts, mapAccount)
 		if exists {
-			log.Printf("%v", err)
+			m.Log.Info("%v", err)
 			return err
 		} else {
-			log.Printf("%s with account id '%s' not exists\n", args.DataType, args.AccountID)
+			m.Log.Info("MapAccount not exists", "DataType", args.DataType, "AccountID", args.AccountID)
 			return nil
 		}
 	}
 	if args.DataType == MapUserData {
-		log.Printf("authData.MapUsers: %v\n", authData.MapUsers)
+		m.Log.Info("existsAuth", "DataType", args.DataType, "Username", args.Username, "UserARN", args.UserARN)
 		mapUser := NewMapUser(args.UserARN, args.Username, args.Groups)
 		err, exists := existsUser(authData.MapUsers, mapUser)
 		if exists {
-			log.Printf("%v", err)
+			m.Log.Info("%v", err)
 			return err
 		} else {
-			log.Printf("%s with username '%s' or userarn '%s' not exists\n", args.DataType, args.Username, args.UserARN)
+			m.Log.Info("MapUser not exists", "DataType", args.DataType, "Username", args.Username, "UserARN", args.UserARN)
 			return nil
 		}
 	}
 
 	if args.DataType == MapRoleData {
-		log.Printf("authData.MapRoles: %v\n", authData.MapRoles)
+		m.Log.Info("existsAuth", "DataType", args.DataType, "Username", args.Username, "RoleARN", args.RoleARN)
 		mapRole := NewMapRole(args.RoleARN, args.Username, args.Groups)
 		err, exists := existsRole(authData.MapRoles, mapRole)
 		if exists {
-			log.Printf("%v", err)
+			m.Log.Info("%v", err)
 			return err
 		} else {
-			log.Printf("%s with username '%s' or rolearn '%s' not exists\n", args.DataType, args.Username, args.RoleARN)
+			m.Log.Info("MapRole not exists", "DataType", args.DataType, "Username", args.Username, "RoleARN", args.RoleARN)
 			return nil
 		}
 	}
@@ -220,16 +225,17 @@ func (m *Mapper) existsAuth(args *Arguments) error {
 
 func existsAccount(authMaps []*MapAccount, resource *MapAccount) (error, bool) {
 	var found = false
-	log.Printf("existsAccount check: account id: %v \n", resource.AccountID)
+	//log.Printf("existsAccount check: account id: %v \n", resource.AccountID)
+	logger.Info("existsAccount", "AccountID", resource.AccountID)
 	for _, existing := range authMaps {
-		log.Printf("existsAccount: cm account id: %v \n", existing.AccountID)
-		log.Printf("existsAccount: new account id: %v \n", resource.AccountID)
+		logger.Info("existsAccount.Compare", "cm account id", existing.AccountID, "new account id", resource.AccountID)
+		//log.Printf("existsAccount: cm account id: %v \n", existing.AccountID)
+		//log.Printf("existsAccount: new account id: %v \n", resource.AccountID)
 		if existing.AccountID == resource.AccountID {
 			found = true
 			return fmt.Errorf("account with id '%s' already exists", resource.AccountID), found
 		} else {
 			found = false
-			// return nil, found
 		}
 	}
 	return nil, found
@@ -237,10 +243,13 @@ func existsAccount(authMaps []*MapAccount, resource *MapAccount) (error, bool) {
 
 func existsUser(authMaps []*MapUser, resource *MapUser) (error, bool) {
 	var found = false
-	log.Printf("existsUser check: username: %v userarn:%v \n", resource.Username, resource.UserARN)
+	//log.Printf("existsUser check: username: %v userarn:%v \n", resource.Username, resource.UserARN)
+	logger.Info("existsUser", "Username", resource.Username, "UserARN", resource.UserARN)
 	for _, existing := range authMaps {
-		log.Printf("existsUser: cm username: %v userarn: %v \n", existing.Username, existing.UserARN)
-		log.Printf("existsUser: new username: %v userarn: %v \n", resource.Username, resource.UserARN)
+		logger.Info("existsUser.Compare", "cm username", existing.Username, "new username", resource.Username)
+		logger.Info("existsUser.Compare", "cm userarn", existing.UserARN, "new userarn", resource.UserARN)
+		//log.Printf("existsUser: cm username: %v userarn: %v \n", existing.Username, existing.UserARN)
+		//log.Printf("existsUser: new username: %v userarn: %v \n", resource.Username, resource.UserARN)
 		if existing.Username == resource.Username {
 			found = true
 			return fmt.Errorf("existsUser: username  '%s' already exists", resource.Username), found
@@ -249,7 +258,6 @@ func existsUser(authMaps []*MapUser, resource *MapUser) (error, bool) {
 			return fmt.Errorf("existsUser: userarn  '%s' already exists", resource.UserARN), found
 		} else {
 			found = false
-			// return nil, found
 		}
 	}
 	return nil, found
@@ -257,10 +265,13 @@ func existsUser(authMaps []*MapUser, resource *MapUser) (error, bool) {
 
 func existsRole(authMaps []*MapRole, resource *MapRole) (error, bool) {
 	var found = false
-	log.Printf("existsRole check: username: %v rolearn:%v \n", resource.Username, resource.RoleARN)
+	//log.Printf("existsRole check: username: %v rolearn:%v \n", resource.Username, resource.RoleARN)
+	logger.Info("existsRole", "Username", resource.Username, "RoleARN", resource.RoleARN)
 	for _, existing := range authMaps {
-		log.Printf("existsRole: cm username: %v rolearn: %v \n", existing.Username, existing.RoleARN)
-		log.Printf("existsRole: new username: %v rolearn: %v \n", resource.Username, resource.RoleARN)
+		//log.Printf("existsRole: cm username: %v rolearn: %v \n", existing.Username, existing.RoleARN)
+		//log.Printf("existsRole: new username: %v rolearn: %v \n", resource.Username, resource.RoleARN)
+		logger.Info("existsRole.Compare", "cm username", existing.Username, "new username", resource.Username)
+		logger.Info("existsRole.Compare", "cm rolearn", existing.RoleARN, "new rolearn", resource.RoleARN)
 		if existing.Username == resource.Username {
 			found = true
 			return fmt.Errorf("existsRole: username  '%s' already exists", resource.Username), found
@@ -269,7 +280,6 @@ func existsRole(authMaps []*MapRole, resource *MapRole) (error, bool) {
 			return fmt.Errorf("existsRole: rolearn  '%s' already exists", resource.RoleARN), found
 		} else {
 			found = false
-			// return nil, found
 		}
 	}
 	return nil, found
@@ -295,9 +305,11 @@ func (m *Mapper) upsertAuth(args *Arguments) error {
 		mapRole := NewMapRole(args.RoleARN, args.Username, args.Groups)
 		newMap, ok := upsertRole(authData.MapRoles, mapRole)
 		if ok {
-			log.Printf("%s with username '%s' and rolearn '%s' key has been updated\n", args.DataType, args.Username, args.RoleARN)
+			// log.Printf("%s with username '%s' and rolearn '%s' key has been updated\n", args.DataType, args.Username, args.RoleARN)
+			logger.Info("upsertAuth.Updated", "DataType", args.DataType, "Username", args.Username, "RoleARN", args.RoleARN)
 		} else {
-			log.Printf("no updates needed to %s with username '%s' and rolearn '%s'\n", args.DataType, args.Username, args.RoleARN)
+			// log.Printf("no updates needed to %s with username '%s' and rolearn '%s'\n", args.DataType, args.Username, args.RoleARN)
+			// logger.Info("upsertAuth.NoNeedUpdate", "DataType", args.DataType, "Username", args.Username, "RoleARN", args.RoleARN)
 		}
 		authData.SetMapRoles(newMap)
 	}
@@ -306,9 +318,11 @@ func (m *Mapper) upsertAuth(args *Arguments) error {
 		mapUser := NewMapUser(args.UserARN, args.Username, args.Groups)
 		newMap, ok := upsertUser(authData.MapUsers, mapUser)
 		if ok {
-			log.Printf("%s with username '%s' and userarn '%s' key has been updated\n", args.DataType, args.Username, args.UserARN)
+			//log.Printf("%s with username '%s' and userarn '%s' key has been updated\n", args.DataType, args.Username, args.UserARN)
+			logger.Info("upsertAuth.Updated", "DataType", args.DataType, "Username", args.Username, "UserARN", args.UserARN)
 		} else {
-			log.Printf("no updates needed to %s with username '%s' and userarn '%s'\n", args.DataType, args.Username, args.UserARN)
+			// log.Printf("no updates needed to %s with username '%s' and userarn '%s'\n", args.DataType, args.Username, args.UserARN)
+			// logger.Info("upsertAuth.NoNeedUpdate", "DataType", args.DataType, "Username", args.Username, "UserARN", args.UserARN)
 		}
 		authData.SetMapUsers(newMap)
 	}
@@ -317,9 +331,11 @@ func (m *Mapper) upsertAuth(args *Arguments) error {
 		mapAccount := NewMapAccount(args.AccountID)
 		newMap, ok := upsertAccount(authData.MapAccounts, mapAccount)
 		if ok {
-			log.Printf("%s with account id '%s' key has been updated\n", args.DataType, args.AccountID)
+			// log.Printf("%s with account id '%s' key has been updated\n", args.DataType, args.AccountID)
+			logger.Info("upsertAuth.Updated", "DataType", args.DataType, "AccountID", args.AccountID)
 		} else {
-			log.Printf("no updates needed to %s with account id '%s'\n", args.DataType, args.AccountID)
+			// log.Printf("no updates needed to %s with account id '%s'\n", args.DataType, args.AccountID)
+			// logger.Info("upsertAuth.NoNeedUpdate", "DataType", args.DataType, "AccountID", args.AccountID)
 		}
 		authData.SetMapAccounts(newMap)
 	}

@@ -125,7 +125,8 @@ func (v *MapRoleCustomValidator) ValidateCreate(ctx context.Context, obj runtime
 		return nil, err
 	}
 	for _, existingUser := range mapRoleList.Items {
-		if existingUser.Spec.Username+existingUser.Spec.RoleARN == maprole.Spec.Username+maprole.Spec.RoleARN {
+		if existingUser.Spec.Username == maprole.Spec.Username &&
+			existingUser.Spec.RoleARN == maprole.Spec.RoleARN {
 			return nil, fmt.Errorf("duplicate user data found: username %s or rolearn %s already exists in another MapRole resource: %s",
 				maprole.Spec.Username, maprole.Spec.RoleARN, existingUser.GetName())
 		}

@@ -56,14 +56,12 @@ type MapRoleReconciler struct {
 func (r *MapRoleReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = logf.FromContext(ctx)
 
-	mapRoleName := req.Name
-
-	log := ctrl.Log.WithValues("MapRole", mapRoleName)
-	log.Info("reconciling MapRole...")
+	log := ctrl.Log.WithValues("MapRole", req.Name, "namespace", req.Namespace)
+	log.Info("Reconciling MapRole...")
 
 	kubeClient, err := kube.GetClient()
 	if err != nil {
-		log.Error(err, "failure getting kube client")
+		log.Error(err, "Failure getting kube client")
 		return ctrl.Result{}, err
 	}
 
@@ -78,7 +76,7 @@ func (r *MapRoleReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		MaxRetryTime:  time.Second * 3,
 	})
 	if err != nil {
-		log.Error(err, "failure creating new aws auth service")
+		log.Error(err, "Failure creating new aws auth service")
 		return ctrl.Result{}, err
 	}
 
@@ -88,15 +86,14 @@ func (r *MapRoleReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		// If any error other than a "NotFound" API error, it's a problem.
 		statusErr, ok := err.(*apierrors.StatusError)
 		if !ok || (ok && statusErr.ErrStatus.Reason != NotFound) {
-			log.Error(err, "failure getting MapRole")
+			log.Error(err, "Failure getting MapRole")
 			return ctrl.Result{}, err
 		}
-		log.Info("removed mapRole data in aws-auth configmap")
 		return ctrl.Result{}, nil
 	}
 
 	if mapRole.DeletionTimestamp.IsZero() {
-		logf.Log.Info("mapRole is not being deleted: " + mapRole.Name)
+		//logf.Log.Info("mapRole is not being deleted: " + mapRole.Name)
 		// Add finalizer
 		if !controllerutil.ContainsFinalizer(mapRole, awsauth.CrdFinalizerName) {
 			logf.Log.Info("Adding finalizer: " + mapRole.Name)
@@ -111,33 +108,33 @@ func (r *MapRoleReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 				RoleARN:  mapRole.Spec.RoleARN,
 				Groups:   mapRole.Spec.Groups,
 			}); err != nil {
-				log.Error(err, "failure upserting MapRole: "+mapRole.Name)
+				log.Error(err, "Failure upserting MapRole")
 				return ctrl.Result{}, err
 			}
-			log.Info("upserted MapRole: " + mapRole.Name)
+			//log.Info("Upserted MapRole")
 		}
 	} else {
-		log.Info("mapRole is being deleted: " + mapRole.Name)
+		log.Info("mapRole is being deleted")
 		if controllerutil.ContainsFinalizer(mapRole, awsauth.CrdFinalizerName) {
 			if err := awsauthSvc.RemoveMapRole(awsauth.MapRole{
 				Username: mapRole.Spec.Username,
 				RoleARN:  mapRole.Spec.RoleARN,
 				Groups:   mapRole.Spec.Groups,
 			}); err != nil {
-				log.Error(err, "failure removing mapRole data in aws-auth configmap: "+mapRole.Name)
+				log.Error(err, "Failure removing mapRole data in aws-auth configmap")
 				return ctrl.Result{}, nil
 			}
-			logf.Log.Info("Removing finalizer: " + mapRole.Name)
+			log.Info("Removing finalizer")
 			controllerutil.RemoveFinalizer(mapRole, awsauth.CrdFinalizerName)
 			if err := r.Update(ctx, mapRole); err != nil {
 				return ctrl.Result{}, err
 			}
 		}
-		log.Info("removed mapRole data in aws-auth configmap: " + mapRole.Name)
+		log.Info("Removed mapRole data in aws-auth configmap")
 		return ctrl.Result{}, nil
 	}
 
-	return ctrl.Result{}, nil
+	return ctrl.Result{RequeueAfter: awsauth.ReconcileTime}, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.

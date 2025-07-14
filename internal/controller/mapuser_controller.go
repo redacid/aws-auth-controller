@@ -58,21 +58,18 @@ func (r *MapUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	_ = logf.FromContext(ctx)
 
 	// MapUser objects are named by their associated AWS IAM user ARNs.
-	mapUserName := req.Name
-	log := ctrl.Log.WithValues("MapUser", mapUserName)
-	// log := r. Log.WithValues("MapUser", mapUserName)
-	log.Info("reconciling MapUser...")
+	log := ctrl.Log.WithValues("MapUser", req.Name, "namespace", req.Namespace)
+	log.Info("Reconciling MapUser...")
 
 	kubeClient, err := kube.GetClient()
 	if err != nil {
-		log.Error(err, "failure getting kube client")
+		log.Error(err, "Failure getting kube client")
 		return ctrl.Result{}, err
 	}
 
 	// Get a new aws auth service object.
 	awsauthSvc, err := awsauth.NewService(&awsauth.ServiceConfig{
-		KubeClient: kubeClient,
-		// Log:        r.Log,
+		KubeClient:    kubeClient,
 		Log:           ctrl.Log,
 		WithRetries:   true,
 		MaxRetryCount: 5,
@@ -80,7 +77,7 @@ func (r *MapUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		MaxRetryTime:  time.Second * 3,
 	})
 	if err != nil {
-		log.Error(err, "failure creating new aws auth service")
+		log.Error(err, "Failure creating new aws auth service")
 		return ctrl.Result{}, err
 	}
 
@@ -91,13 +88,13 @@ func (r *MapUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		// If any error other than a "NotFound" API error, it's a problem.
 		statusErr, ok := err.(*apierrors.StatusError)
 		if !ok || (ok && statusErr.ErrStatus.Reason != NotFound) {
-			logf.Log.Error(err, "failure getting MapUser")
+			logf.Log.Error(err, "Failure getting MapUser")
 			return ctrl.Result{}, err
 		}
 		return ctrl.Result{}, nil
 	}
 	if mapUser.DeletionTimestamp.IsZero() {
-		logf.Log.Info("mapUser is not being deleted: " + mapUser.Name)
+		//logf.Log.Info("mapUser is not being deleted: " + mapUser.Name)
 		// Add finalizer
 		if !controllerutil.ContainsFinalizer(mapUser, awsauth.CrdFinalizerName) {
 			logf.Log.Info("Adding finalizer: " + mapUser.Name)
@@ -112,33 +109,33 @@ func (r *MapUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 				UserARN:  mapUser.Spec.UserARN,
 				Groups:   mapUser.Spec.Groups,
 			}); err != nil {
-				log.Error(err, "failure upserting MapUser: "+mapUser.Name)
+				log.Error(err, "Failure upserting MapUser")
 				return ctrl.Result{}, err
 			}
-			log.Info("upserted MapUser: " + mapUser.Name)
+			//log.Info("Upserted MapUser")
 		}
 	} else {
-		log.Info("mapUser is being deleted: " + mapUser.Name)
+		log.Info("mapUser is being deleted")
 		if controllerutil.ContainsFinalizer(mapUser, awsauth.CrdFinalizerName) {
 			if err := awsauthSvc.RemoveMapUser(awsauth.MapUser{
 				Username: mapUser.Spec.Username,
 				UserARN:  mapUser.Spec.UserARN,
 				Groups:   mapUser.Spec.Groups,
 			}); err != nil {
-				log.Error(err, "failure removing mapUser data in aws-auth configmap: "+mapUser.Name)
+				log.Error(err, "Failure removing mapUser data in aws-auth configmap")
 				return ctrl.Result{}, nil
 			}
-			logf.Log.Info("Removing finalizer: " + mapUser.Name)
+			log.Info("Removing finalizer")
 			controllerutil.RemoveFinalizer(mapUser, awsauth.CrdFinalizerName)
 			if err := r.Update(ctx, mapUser); err != nil {
 				return ctrl.Result{}, err
 			}
 		}
-		log.Info("removed mapUser data in aws-auth configmap: " + mapUser.Name)
+		log.Info("Removed mapUser data in aws-auth configmap")
 		return ctrl.Result{}, nil
 	}
 
-	return ctrl.Result{}, nil
+	return ctrl.Result{RequeueAfter: awsauth.ReconcileTime}, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.

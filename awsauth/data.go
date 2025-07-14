@@ -18,7 +18,9 @@ package awsauth
 import (
 	"context"
 	"fmt"
-	"log"
+	"time"
+
+	// "log"
 	"sync"
 
 	"gopkg.in/yaml.v2"
@@ -31,7 +33,7 @@ import (
 )
 
 func init() {
-	log.SetFlags(0)
+	//log.SetFlags(0)
 }
 
 const (
@@ -46,7 +48,9 @@ var (
 	// TODO automatic add to configmap
 	MustPresentAccountID    string = ""
 	CrdItemAllowedNamespace string = ""
-	configMapMutex          sync.RWMutex
+
+	ReconcileTime  time.Duration = time.Minute * 30
+	configMapMutex sync.RWMutex
 )
 
 type ControllerArgs struct {
@@ -54,6 +58,7 @@ type ControllerArgs struct {
 	MustPresentAccountID    string
 	CrdItemAllowedNamespace string
 	ConfigMapName           string
+	ReconcileTime           time.Duration
 }
 
 func DeclareVariables(controllerArgs ControllerArgs) {
@@ -61,6 +66,7 @@ func DeclareVariables(controllerArgs ControllerArgs) {
 	MustPresentAccountID = controllerArgs.MustPresentAccountID
 	CrdItemAllowedNamespace = controllerArgs.CrdItemAllowedNamespace
 	ConfigMapName = controllerArgs.ConfigMapName
+	ReconcileTime = controllerArgs.ReconcileTime
 }
 
 // ReadAuthMap reads the auth ConfigMap and returns AwsAuthData and the read ConfigMap.

@@ -18,7 +18,6 @@ package awsauth
 import (
 	"github.com/jpillora/backoff"
 	"github.com/pkg/errors"
-	"log"
 	"strings"
 	"time"
 )
@@ -72,7 +71,7 @@ func WithRetry(fn func(*Arguments) error, args *Arguments) error {
 			// Check if error is related to ConfigMap conflict
 			if strings.Contains(err.Error(), "the object has been modified") {
 				d := bkoff.Duration()
-				log.Printf("ConfigMap conflict detected: %v: will retry after %v", err, d)
+				logger.Info("ConfigMap conflict detected", "error", err, "retry after", d)
 				time.Sleep(d)
 				counter++
 				continue

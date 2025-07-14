@@ -59,9 +59,9 @@ func (r *MapAccountReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	// TODO(user): your logic here
 
 	// MapAccount objects a list of AWS Accounts.
-	mapAccountName := req.Name
-	log := ctrl.Log.WithValues("MapAccount", mapAccountName)
-	log.Info("reconciling MapAccount...")
+
+	log := ctrl.Log.WithValues("MapAccount", req.Name, "namespace", req.Namespace)
+	log.Info("Reconciling MapAccount...")
 
 	kubeClient, err := kube.GetClient()
 	if err != nil {
@@ -71,8 +71,7 @@ func (r *MapAccountReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 
 	// Get a new aws auth service object.
 	awsauthSvc, err := awsauth.NewService(&awsauth.ServiceConfig{
-		KubeClient: kubeClient,
-		// Log:        r.Log,
+		KubeClient:    kubeClient,
 		Log:           ctrl.Log,
 		WithRetries:   true,
 		MaxRetryCount: 5,
@@ -98,10 +97,10 @@ func (r *MapAccountReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	}
 	// examine DeletionTimestamp to determine if object is under deletion
 	if mapAccount.DeletionTimestamp.IsZero() {
-		logf.Log.Info("mapAccount is not being deleted: " + mapAccount.Name)
+		//logf.Log.Info("mapAccount is not being deleted: " + mapAccount.Name)
 		// Add finalizer
 		if !controllerutil.ContainsFinalizer(mapAccount, awsauth.CrdFinalizerName) {
-			logf.Log.Info("adding finalizer: " + mapAccount.Name)
+			logf.Log.Info("Adding finalizer: " + mapAccount.Name)
 			controllerutil.AddFinalizer(mapAccount, awsauth.CrdFinalizerName)
 			if err := r.Update(ctx, mapAccount); err != nil {
 				return ctrl.Result{}, err
@@ -111,31 +110,31 @@ func (r *MapAccountReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 			if err := awsauthSvc.UpsertMapAccount(awsauth.MapAccount{
 				AccountID: mapAccount.Spec.AccountID,
 			}); err != nil {
-				log.Error(err, "Failure upserting MapAccount: "+mapAccount.Name)
+				log.Error(err, "Failure upserting MapAccount")
 				return ctrl.Result{}, err
 			}
-			log.Info("Upserted MapAccount: " + mapAccount.Name)
+			//log.Info("Upserted MapAccount")
 		}
 
 	} else {
-		log.Info("mapAccount is being deleted: " + mapAccount.Name)
+		log.Info("mapAccount is being deleted")
 		if controllerutil.ContainsFinalizer(mapAccount, awsauth.CrdFinalizerName) {
 			if err := awsauthSvc.RemoveMapAccount(awsauth.MapAccount{
 				AccountID: mapAccount.Spec.AccountID,
 			}); err != nil {
-				log.Error(err, "Failure removing mapAccount data in aws-auth configmap: "+mapAccount.Name)
+				log.Error(err, "Failure removing mapAccount data in aws-auth configmap")
 				return ctrl.Result{}, nil
 			}
-			logf.Log.Info("Removing finalizer: " + mapAccount.Name)
+			log.Info("Removing finalizer")
 			controllerutil.RemoveFinalizer(mapAccount, awsauth.CrdFinalizerName)
 			if err := r.Update(ctx, mapAccount); err != nil {
 				return ctrl.Result{}, err
 			}
 		}
-		log.Info("Removed mapAccount data in aws-auth configmap: " + mapAccount.Name)
+		log.Info("Removed mapAccount data in aws-auth configmap")
 		return ctrl.Result{}, nil
 	}
-	return ctrl.Result{}, nil
+	return ctrl.Result{RequeueAfter: awsauth.ReconcileTime}, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.

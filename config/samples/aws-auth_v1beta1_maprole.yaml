@@ -4,7 +4,7 @@ metadata:
   labels:
     app.kubernetes.io/name: aws-auth-controller-prozorro
     app.kubernetes.io/managed-by: kustomize
-  name: maprole_prod-self-managed-node-group
+  name: maprole-prod-self-managed-node-group
 spec:
   rolearn: arn:aws:iam::130488995195:role/prod-self-managed-node-group
   groups:
@@ -21,7 +21,7 @@ metadata:
   labels:
     app.kubernetes.io/name: aws-auth-controller-prozorro
     app.kubernetes.io/managed-by: kustomize
-  name: maprole_self-mng-single-az-node-group
+  name: maprole-self-mng-single-az-node-group
 spec:
   rolearn: arn:aws:iam::130488995195:role/self-mng-single-az-node-group-20240218223715755100000001
   groups:
