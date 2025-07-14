@@ -295,9 +295,9 @@ func (m *Mapper) upsertAuth(args *Arguments) error {
 		mapRole := NewMapRole(args.RoleARN, args.Username, args.Groups)
 		newMap, ok := upsertRole(authData.MapRoles, mapRole)
 		if ok {
-			log.Printf("%s with username '%s' key has been updated\n", args.DataType, args.Username)
+			log.Printf("%s with username '%s' and rolearn '%s' key has been updated\n", args.DataType, args.Username, args.RoleARN)
 		} else {
-			log.Printf("no updates needed to %s with username '%s'\n", args.DataType, args.Username)
+			log.Printf("no updates needed to %s with username '%s' and rolearn '%s'\n", args.DataType, args.Username, args.RoleARN)
 		}
 		authData.SetMapRoles(newMap)
 	}
@@ -306,9 +306,9 @@ func (m *Mapper) upsertAuth(args *Arguments) error {
 		mapUser := NewMapUser(args.UserARN, args.Username, args.Groups)
 		newMap, ok := upsertUser(authData.MapUsers, mapUser)
 		if ok {
-			log.Printf("%s with username '%s' key has been updated\n", args.DataType, args.Username)
+			log.Printf("%s with username '%s' and userarn '%s' key has been updated\n", args.DataType, args.Username, args.UserARN)
 		} else {
-			log.Printf("no updates needed to %s with username '%s'\n", args.DataType, args.Username)
+			log.Printf("no updates needed to %s with username '%s' and userarn '%s'\n", args.DataType, args.Username, args.UserARN)
 		}
 		authData.SetMapUsers(newMap)
 	}
