@@ -11,6 +11,11 @@ import (
 
 // GetClient returns a new configured Kubernetes client.
 func GetClient() (kubernetes.Interface, error) {
+
+	if testConfig != nil {
+		return kubernetes.NewForConfig(testConfig)
+	}
+
 	var cfg *rest.Config
 	var err error
 
