@@ -36,7 +36,7 @@ var _ = Describe("MapRole Controller", func() {
 		const roleName = "test-role"
 		var groups = []string{"system:masters", "system:nodes"}
 		const rolearn = "arn:aws:iam::123456789012:role/test-role"
-		const namespace = "kube-system"
+		const namespace = "default"
 
 		ctx := context.Background()
 

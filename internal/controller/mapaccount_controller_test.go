@@ -34,7 +34,7 @@ var _ = Describe("MapAccount Controller", func() {
 	Context("When reconciling a resource", func() {
 		const resourceName = "test-account-resource"
 		const accountid = "123456789012"
-		const namespace = "kube-system"
+		const namespace = "default"
 
 		ctx := context.Background()
 

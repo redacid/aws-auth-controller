@@ -36,7 +36,7 @@ var _ = Describe("MapUser Controller", func() {
 		const userName = "test-user"
 		var groups = []string{"system:masters", "system:nodes"}
 		const userarn = "arn:aws:iam::123456789012:user/test-user"
-		const namespace = "kube-system"
+		const namespace = "default"
 
 		ctx := context.Background()
 
