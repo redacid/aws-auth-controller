@@ -97,7 +97,7 @@ func (r *MapAccountReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	}
 	// examine DeletionTimestamp to determine if object is under deletion
 	if mapAccount.DeletionTimestamp.IsZero() {
-		//logf.Log.Info("mapAccount is not being deleted: " + mapAccount.Name)
+		// logf.Log.Info("mapAccount is not being deleted: " + mapAccount.Name)
 		// Add finalizer
 		if !controllerutil.ContainsFinalizer(mapAccount, awsauth.CrdFinalizerName) {
 			logf.Log.Info("Adding finalizer: " + mapAccount.Name)
@@ -113,7 +113,7 @@ func (r *MapAccountReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 				log.Error(err, "Failure upserting MapAccount")
 				return ctrl.Result{}, err
 			}
-			//log.Info("Upserted MapAccount")
+			// log.Info("Upserted MapAccount")
 		}
 
 	} else {

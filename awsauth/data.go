@@ -88,10 +88,10 @@ func ReadAuthMap(k kubernetes.Interface) (AwsAuthData, *kcorev1.ConfigMap, error
 		return authData, cm, err
 	}
 
-	/*err = yaml.Unmarshal([]byte(cm.Data["mapAccounts"]), &authData.MapAccounts)
-	if err != nil {
-		return authData, cm, err
-	}*/
+	/* err = yaml.Unmarshal([]byte(cm.Data["mapAccounts"]), &authData.MapAccounts)
+	 if err != nil {
+	   	return authData, cm, err
+	} */
 
 	var accountIDs []string
 	err = yaml.Unmarshal([]byte(cm.Data["mapAccounts"]), &accountIDs)

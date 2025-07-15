@@ -246,8 +246,8 @@ func TestMapper_UpsertWithCreate(t *testing.T) {
 
 	auth, _, err := ReadAuthMap(client)
 	g.Expect(err).NotTo(gomega.HaveOccurred())
-	g.Expect(len(auth.MapRoles)).To(gomega.Equal(1))
-	g.Expect(len(auth.MapUsers)).To(gomega.Equal(1))
+	g.Expect(auth.MapRoles).To(gomega.HaveLen(1))
+	g.Expect(auth.MapUsers).To(gomega.HaveLen(1))
 	g.Expect(auth.MapRoles[0].RoleARN).To(gomega.Equal(testARNs["node-1"]))
 	g.Expect(auth.MapRoles[0].Username).To(gomega.Equal("this:is:a:test"))
 	g.Expect(auth.MapRoles[0].Groups).To(gomega.Equal([]string{"system:some-role"}))
@@ -287,8 +287,8 @@ func TestMapper_UpsertWithRetries(t *testing.T) {
 
 	auth, _, err := ReadAuthMap(client)
 	g.Expect(err).NotTo(gomega.HaveOccurred())
-	g.Expect(len(auth.MapRoles)).To(gomega.Equal(1))
-	g.Expect(len(auth.MapUsers)).To(gomega.Equal(2))
+	g.Expect(auth.MapRoles).To(gomega.HaveLen(1))
+	g.Expect(auth.MapUsers).To(gomega.HaveLen(2))
 	g.Expect(auth.MapRoles[0].RoleARN).To(gomega.Equal(testARNs["node-1"]))
 	g.Expect(auth.MapRoles[0].Username).To(gomega.Equal("system:node:{{EC2PrivateDNSName}}"))
 	g.Expect(auth.MapRoles[0].Groups).To(gomega.Equal([]string{"system:some-role"}))

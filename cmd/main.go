@@ -84,8 +84,8 @@ func main() {
 			" if not set, all namespaces allowed creation of Resources.")
 	flag.StringVar(&configMapName, "config-map-name", "aws-auth", "ConfigMap-name where store items,"+
 		" --config-map-name=aws-auth, if not set, use default name aws-auth")
-	flag.DurationVar(&reconcileTime, "reconcile-time", time.Minute*30, "Time to reconcile CRDs and recreate configmap item if need"+
-		" --reconcile-time=30m, if not set, use default value 30 minutes")
+	flag.DurationVar(&reconcileTime, "reconcile-time", time.Minute*30, "Time to reconcile CRDs and recreate "+
+		" configmap item if need, --reconcile-time=30m, if not set, use default value 30 minutes")
 
 	flag.StringVar(&metricsAddr, "metrics-bind-address", "0", "The address the metrics endpoint binds to. "+
 		"Use :8443 for HTTPS or :8080 for HTTP, or leave as 0 to disable the metrics service.")

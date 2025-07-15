@@ -16,10 +16,11 @@ limitations under the License.
 package awsauth
 
 import (
-	"github.com/jpillora/backoff"
-	"github.com/pkg/errors"
 	"strings"
 	"time"
+
+	"github.com/jpillora/backoff"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -29,7 +30,7 @@ const (
 
 // WithRetry runs the passed operation function with its arguments and retries
 // on failures until success or max number of retry attempts have failed.
-/*func WithRetry(fn func(*Arguments) error, args *Arguments) error {
+/* func WithRetry(fn func(*Arguments) error, args *Arguments) error {
 	var (
 		counter int
 		err     error
@@ -53,7 +54,7 @@ const (
 	}
 
 	return errors.Wrap(err, "waiter timed out")
-}*/
+} */
 func WithRetry(fn func(*Arguments) error, args *Arguments) error {
 	var (
 		counter int

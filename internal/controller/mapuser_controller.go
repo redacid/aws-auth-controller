@@ -94,7 +94,7 @@ func (r *MapUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		return ctrl.Result{}, nil
 	}
 	if mapUser.DeletionTimestamp.IsZero() {
-		//logf.Log.Info("mapUser is not being deleted: " + mapUser.Name)
+		// logf.Log.Info("mapUser is not being deleted: " + mapUser.Name)
 		// Add finalizer
 		if !controllerutil.ContainsFinalizer(mapUser, awsauth.CrdFinalizerName) {
 			logf.Log.Info("Adding finalizer: " + mapUser.Name)
@@ -112,7 +112,7 @@ func (r *MapUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 				log.Error(err, "Failure upserting MapUser")
 				return ctrl.Result{}, err
 			}
-			//log.Info("Upserted MapUser")
+			// log.Info("Upserted MapUser")
 		}
 	} else {
 		log.Info("mapUser is being deleted")

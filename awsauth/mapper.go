@@ -17,12 +17,12 @@ package awsauth
 
 import (
 	"fmt"
+	"reflect"
+	"time"
+
 	"github.com/go-logr/logr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
-
-	"reflect"
-	"time"
 
 	"k8s.io/client-go/kubernetes"
 )
@@ -225,12 +225,9 @@ func (m *Mapper) existsAuth(args *Arguments) error {
 
 func existsAccount(authMaps []*MapAccount, resource *MapAccount) (error, bool) {
 	var found = false
-	//log.Printf("existsAccount check: account id: %v \n", resource.AccountID)
 	logger.Info("existsAccount", "AccountID", resource.AccountID)
 	for _, existing := range authMaps {
 		logger.Info("existsAccount.Compare", "cm account id", existing.AccountID, "new account id", resource.AccountID)
-		//log.Printf("existsAccount: cm account id: %v \n", existing.AccountID)
-		//log.Printf("existsAccount: new account id: %v \n", resource.AccountID)
 		if existing.AccountID == resource.AccountID {
 			found = true
 			return fmt.Errorf("account with id '%s' already exists", resource.AccountID), found
@@ -243,13 +240,10 @@ func existsAccount(authMaps []*MapAccount, resource *MapAccount) (error, bool) {
 
 func existsUser(authMaps []*MapUser, resource *MapUser) (error, bool) {
 	var found = false
-	//log.Printf("existsUser check: username: %v userarn:%v \n", resource.Username, resource.UserARN)
 	logger.Info("existsUser", "Username", resource.Username, "UserARN", resource.UserARN)
 	for _, existing := range authMaps {
 		logger.Info("existsUser.Compare", "cm username", existing.Username, "new username", resource.Username)
 		logger.Info("existsUser.Compare", "cm userarn", existing.UserARN, "new userarn", resource.UserARN)
-		//log.Printf("existsUser: cm username: %v userarn: %v \n", existing.Username, existing.UserARN)
-		//log.Printf("existsUser: new username: %v userarn: %v \n", resource.Username, resource.UserARN)
 		if existing.Username == resource.Username {
 			found = true
 			return fmt.Errorf("existsUser: username  '%s' already exists", resource.Username), found
@@ -265,13 +259,16 @@ func existsUser(authMaps []*MapUser, resource *MapUser) (error, bool) {
 
 func existsRole(authMaps []*MapRole, resource *MapRole) (error, bool) {
 	var found = false
-	//log.Printf("existsRole check: username: %v rolearn:%v \n", resource.Username, resource.RoleARN)
-	logger.Info("existsRole", "Username", resource.Username, "RoleARN", resource.RoleARN)
+	logger.Info("existsRole",
+		"Username", resource.Username,
+		"RoleARN", resource.RoleARN)
 	for _, existing := range authMaps {
-		//log.Printf("existsRole: cm username: %v rolearn: %v \n", existing.Username, existing.RoleARN)
-		//log.Printf("existsRole: new username: %v rolearn: %v \n", resource.Username, resource.RoleARN)
-		logger.Info("existsRole.Compare", "cm username", existing.Username, "new username", resource.Username)
-		logger.Info("existsRole.Compare", "cm rolearn", existing.RoleARN, "new rolearn", resource.RoleARN)
+		logger.Info("existsRole.Compare",
+			"cm username", existing.Username,
+			"new username", resource.Username)
+		logger.Info("existsRole.Compare",
+			"cm rolearn", existing.RoleARN,
+			"new rolearn", resource.RoleARN)
 		if existing.Username == resource.Username {
 			found = true
 			return fmt.Errorf("existsRole: username  '%s' already exists", resource.Username), found
@@ -305,12 +302,16 @@ func (m *Mapper) upsertAuth(args *Arguments) error {
 		mapRole := NewMapRole(args.RoleARN, args.Username, args.Groups)
 		newMap, ok := upsertRole(authData.MapRoles, mapRole)
 		if ok {
-			// log.Printf("%s with username '%s' and rolearn '%s' key has been updated\n", args.DataType, args.Username, args.RoleARN)
-			logger.Info("upsertAuth.Updated", "DataType", args.DataType, "Username", args.Username, "RoleARN", args.RoleARN)
-		} else {
-			// log.Printf("no updates needed to %s with username '%s' and rolearn '%s'\n", args.DataType, args.Username, args.RoleARN)
-			// logger.Info("upsertAuth.NoNeedUpdate", "DataType", args.DataType, "Username", args.Username, "RoleARN", args.RoleARN)
-		}
+			logger.Info("upsertAuth.Updated",
+				"DataType", args.DataType,
+				"Username", args.Username,
+				"RoleARN", args.RoleARN)
+		} /* else {
+			logger.Info("upsertAuth.NoNeedUpdate",
+				"DataType", args.DataType,
+				"Username", args.Username,
+				"RoleARN", args.RoleARN)
+		} */
 		authData.SetMapRoles(newMap)
 	}
 
@@ -318,12 +319,16 @@ func (m *Mapper) upsertAuth(args *Arguments) error {
 		mapUser := NewMapUser(args.UserARN, args.Username, args.Groups)
 		newMap, ok := upsertUser(authData.MapUsers, mapUser)
 		if ok {
-			//log.Printf("%s with username '%s' and userarn '%s' key has been updated\n", args.DataType, args.Username, args.UserARN)
-			logger.Info("upsertAuth.Updated", "DataType", args.DataType, "Username", args.Username, "UserARN", args.UserARN)
-		} else {
-			// log.Printf("no updates needed to %s with username '%s' and userarn '%s'\n", args.DataType, args.Username, args.UserARN)
-			// logger.Info("upsertAuth.NoNeedUpdate", "DataType", args.DataType, "Username", args.Username, "UserARN", args.UserARN)
-		}
+			logger.Info("upsertAuth.Updated",
+				"DataType", args.DataType,
+				"Username", args.Username,
+				"UserARN", args.UserARN)
+		} /* else {
+			logger.Info("upsertAuth.NoNeedUpdate",
+				"DataType", args.DataType,
+				"Username", args.Username,
+				"UserARN", args.UserARN)
+		} */
 		authData.SetMapUsers(newMap)
 	}
 
@@ -331,12 +336,14 @@ func (m *Mapper) upsertAuth(args *Arguments) error {
 		mapAccount := NewMapAccount(args.AccountID)
 		newMap, ok := upsertAccount(authData.MapAccounts, mapAccount)
 		if ok {
-			// log.Printf("%s with account id '%s' key has been updated\n", args.DataType, args.AccountID)
-			logger.Info("upsertAuth.Updated", "DataType", args.DataType, "AccountID", args.AccountID)
-		} else {
-			// log.Printf("no updates needed to %s with account id '%s'\n", args.DataType, args.AccountID)
-			// logger.Info("upsertAuth.NoNeedUpdate", "DataType", args.DataType, "AccountID", args.AccountID)
-		}
+			logger.Info("upsertAuth.Updated",
+				"DataType", args.DataType,
+				"AccountID", args.AccountID)
+		} /* else {
+			logger.Info("upsertAuth.NoNeedUpdate",
+				"DataType", args.DataType,
+				"AccountID", args.AccountID)
+		} */
 		authData.SetMapAccounts(newMap)
 	}
 

@@ -18,13 +18,13 @@ package controller
 
 import (
 	"context"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"time"
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
 	awsauthv1beta1 "github.com/redacid/aws-auth-controller/api/v1beta1"
@@ -93,7 +93,7 @@ func (r *MapRoleReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	}
 
 	if mapRole.DeletionTimestamp.IsZero() {
-		//logf.Log.Info("mapRole is not being deleted: " + mapRole.Name)
+		// logf.Log.Info("mapRole is not being deleted: " + mapRole.Name)
 		// Add finalizer
 		if !controllerutil.ContainsFinalizer(mapRole, awsauth.CrdFinalizerName) {
 			logf.Log.Info("Adding finalizer: " + mapRole.Name)
@@ -111,7 +111,7 @@ func (r *MapRoleReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 				log.Error(err, "Failure upserting MapRole")
 				return ctrl.Result{}, err
 			}
-			//log.Info("Upserted MapRole")
+			// log.Info("Upserted MapRole")
 		}
 	} else {
 		log.Info("mapRole is being deleted")
