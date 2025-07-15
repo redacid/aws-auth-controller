@@ -1,6 +1,6 @@
 # Image URL to use all building/pushing image targets
 #IMG ?= controller:latest
-IMG ?= redacid/aws-auth-controller-dev:0.0.91
+IMG ?= redacid/aws-auth-controller-dev:0.0.92
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -40,6 +40,10 @@ all: build
 preview: mod-tidy generate manifests kustomize
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
 	$(KUSTOMIZE) build config/default
+
+.PHONY: deploy-samples
+deploy-samples: manifests kustomize ## Deploy controller to the K8s cluster specified in ~/.kube/config.
+	$(KUSTOMIZE) build config/samples | $(KUBECTL) -n kube-system apply -f -
 
 .PHONY: mod-tidy
 mod-tidy:
