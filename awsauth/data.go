@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"time"
 
-	// "log"
 	"sync"
 
 	"gopkg.in/yaml.v2"
@@ -40,7 +39,7 @@ var (
 	ConfigMapName       = "aws-auth"
 	CrdFinalizerName    = "aws-auth.prozorro.sale/finalizer"
 	UsernameMustBeEmail = false
-	// TODO automatic add to configmap
+	// MustPresentAccountID TODO automatic add to configmap
 	MustPresentAccountID    string = ""
 	CrdItemAllowedNamespace string = ""
 

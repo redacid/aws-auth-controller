@@ -230,7 +230,7 @@ func (svc impl) UpsertMapAccount(mapAccount MapAccount) error {
 	return err
 }
 
-// RemoveMapUser removes a MapUser from the configmap keyed by username.
+// RemoveMapAccount removes a MapAccount from the configmap keyed by account id.
 func (svc impl) RemoveMapAccount(mapAccount MapAccount) error {
 	mapper := NewMapper(svc.cfg.KubeClient, false)
 	err := mapper.Remove(&Arguments{

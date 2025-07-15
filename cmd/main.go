@@ -79,13 +79,13 @@ func main() {
 	flag.StringVar(&mustPresentAccountID, "must-present-account-id", "", "This account must be "+
 		"allways present in ConfigMap, --must-present-account-id=123456789012")
 	flag.StringVar(&crdItemAllowedNamespace, "crd-item-allowed-namespace", "",
-		"Namespace where allowed creation of Resources --crd-item-allowed-namespace=kube-system,"+
+		"Namespace where allowed creation of Resources --crd-item-allowed-namespace=kube-system, "+
 			"If is set, only in this namespace allowed creation of Resources,"+
 			" if not set, all namespaces allowed creation of Resources.")
 	flag.StringVar(&configMapName, "config-map-name", "aws-auth", "ConfigMap-name where store items,"+
 		" --config-map-name=aws-auth, if not set, use default name aws-auth")
 	flag.DurationVar(&reconcileTime, "reconcile-time", time.Minute*30, "Time to reconcile CRDs and recreate "+
-		" configmap item if need, --reconcile-time=30m, if not set, use default value 30 minutes")
+		" configmap item if need, --reconcile-time=30m, s - seconds, m - minutes, h - hours, d - days")
 
 	flag.StringVar(&metricsAddr, "metrics-bind-address", "0", "The address the metrics endpoint binds to. "+
 		"Use :8443 for HTTPS or :8080 for HTTP, or leave as 0 to disable the metrics service.")

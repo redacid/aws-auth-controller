@@ -21,7 +21,7 @@ import (
 	"strings"
 )
 
-// THIS NOT USED
+// AllowedAWSAccounts THIS NOT USED
 var AllowedAWSAccounts = []string{
 	"123456789012",
 	"210987654321",
