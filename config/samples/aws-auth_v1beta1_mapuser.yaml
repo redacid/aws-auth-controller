@@ -26,24 +26,8 @@ spec:
   username: user2@ios.in.ua
   groups:
     - system:masters
-    - admins
-  userarn: arn:aws:iam::123456789012:user/user2
-
----
-apiVersion: aws-auth.prozorro.sale/v1beta1
-kind: MapUser
-metadata:
-  labels:
-    app.kubernetes.io/name: aws-auth-controller-prozorro
-    app.kubernetes.io/managed-by: kustomize
-  name: user3
-spec:
-  description: A test mapuser
-  username: user3@ios.in.ua
-  groups:
-    - system:masters
     - users
-  userarn: arn:aws:iam::123456789012:user/user3
+  userarn: arn:aws:iam::123456789012:user/user2
 
 ---
 apiVersion: aws-auth.prozorro.sale/v1beta1
@@ -55,9 +39,9 @@ metadata:
   name: serhii.rudenko
 spec:
   description: Serhii Rudenko
-  username: serhii.rudenko@prozorro.sale
+  username: sr@ios.in.ua
   groups:
     - system:masters
     - users
     - admins
-  userarn: arn:aws:iam::130488995195:user/serhii.rudenko@prozorro.sale
+  userarn: arn:aws:iam::123456789012:user/sr@ios.in.ua

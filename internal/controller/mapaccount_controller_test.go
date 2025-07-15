@@ -32,13 +32,15 @@ import (
 
 var _ = Describe("MapAccount Controller", func() {
 	Context("When reconciling a resource", func() {
-		const resourceName = "test-resource"
+		const resourceName = "test-account-resource"
+		const accountid = "123456789012"
+		const namespace = "kube-system"
 
 		ctx := context.Background()
 
 		typeNamespacedName := types.NamespacedName{
 			Name:      resourceName,
-			Namespace: "default", // TODO(user):Modify as needed
+			Namespace: namespace,
 		}
 		mapaccount := &awsauthv1beta1.MapAccount{}
 
@@ -49,7 +51,10 @@ var _ = Describe("MapAccount Controller", func() {
 				resource := &awsauthv1beta1.MapAccount{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      resourceName,
-						Namespace: "default",
+						Namespace: namespace,
+					},
+					Spec: awsauthv1beta1.MapAccountSpec{
+						AccountID: accountid,
 					},
 					// TODO(user): Specify other spec details if needed.
 				}

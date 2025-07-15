@@ -32,13 +32,17 @@ import (
 
 var _ = Describe("MapRole Controller", func() {
 	Context("When reconciling a resource", func() {
-		const resourceName = "test-resource"
+		const resourceName = "test-role-resource"
+		const roleName = "test-role"
+		var groups = []string{"system:masters", "system:nodes"}
+		const rolearn = "arn:aws:iam::123456789012:role/test-role"
+		const namespace = "kube-system"
 
 		ctx := context.Background()
 
 		typeNamespacedName := types.NamespacedName{
 			Name:      resourceName,
-			Namespace: "default", // TODO(user):Modify as needed
+			Namespace: namespace,
 		}
 		maprole := &awsauthv1beta1.MapRole{}
 
@@ -49,9 +53,14 @@ var _ = Describe("MapRole Controller", func() {
 				resource := &awsauthv1beta1.MapRole{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      resourceName,
-						Namespace: "default",
+						Namespace: namespace,
 					},
 					// TODO(user): Specify other spec details if needed.
+					Spec: awsauthv1beta1.MapRoleSpec{
+						Username: roleName,
+						Groups:   groups,
+						RoleARN:  rolearn,
+					},
 				}
 				Expect(k8sClient.Create(ctx, resource)).To(Succeed())
 			}

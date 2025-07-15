@@ -33,7 +33,7 @@ var testARNs = map[string]string{
 func TestMapper_Remove(t *testing.T) {
 	g := gomega.NewWithT(t)
 	gomega.RegisterTestingT(t)
-	client := fake.NewSimpleClientset()
+	client := fake.NewClientset()
 	mapper := NewMapper(client, true)
 	createMockConfigMap(client)
 
@@ -61,7 +61,7 @@ func TestMapper_Remove(t *testing.T) {
 func TestMapper_RemoveNotFound(t *testing.T) {
 	g := gomega.NewWithT(t)
 	gomega.RegisterTestingT(t)
-	client := fake.NewSimpleClientset()
+	client := fake.NewClientset()
 	mapper := NewMapper(client, true)
 	createMockConfigMap(client)
 
@@ -89,7 +89,7 @@ func TestMapper_RemoveNotFound(t *testing.T) {
 func TestMapper_RemoveWithRetries(t *testing.T) {
 	g := gomega.NewWithT(t)
 	gomega.RegisterTestingT(t)
-	client := fake.NewSimpleClientset()
+	client := fake.NewClientset()
 	mapper := NewMapper(client, true)
 	createMockConfigMap(client)
 
@@ -124,7 +124,7 @@ func TestMapper_RemoveWithRetries(t *testing.T) {
 func TestMapper_UpsertInsert(t *testing.T) {
 	g := gomega.NewWithT(t)
 	gomega.RegisterTestingT(t)
-	client := fake.NewSimpleClientset()
+	client := fake.NewClientset()
 	mapper := NewMapper(client, true)
 	createMockConfigMap(client)
 
@@ -142,7 +142,7 @@ func TestMapper_UpsertInsert(t *testing.T) {
 		DataType:      MapUserData,
 		UserARN:       testARNs["user-2"],
 		Username:      "admin",
-		Groups:        []string{"system:masters"},
+		Groups:        []string{"system:some-role"},
 	})
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
@@ -155,7 +155,7 @@ func TestMapper_UpsertInsert(t *testing.T) {
 func TestMapper_UpsertUpdate(t *testing.T) {
 	g := gomega.NewWithT(t)
 	gomega.RegisterTestingT(t)
-	client := fake.NewSimpleClientset()
+	client := fake.NewClientset()
 	mapper := NewMapper(client, true)
 	createMockConfigMap(client)
 
@@ -223,7 +223,7 @@ func TestMapper_UpsertUpdate(t *testing.T) {
 func TestMapper_UpsertWithCreate(t *testing.T) {
 	g := gomega.NewWithT(t)
 	gomega.RegisterTestingT(t)
-	client := fake.NewSimpleClientset()
+	client := fake.NewClientset()
 	mapper := NewMapper(client, true)
 
 	err := mapper.Upsert(&Arguments{
@@ -246,8 +246,8 @@ func TestMapper_UpsertWithCreate(t *testing.T) {
 
 	auth, _, err := ReadAuthMap(client)
 	g.Expect(err).NotTo(gomega.HaveOccurred())
-	g.Expect(len(auth.MapRoles)).To(gomega.HaveLen(1))
-	g.Expect(len(auth.MapUsers)).To(gomega.HaveLen(1))
+	g.Expect(len(auth.MapRoles)).To(gomega.Equal(1))
+	g.Expect(len(auth.MapUsers)).To(gomega.Equal(1))
 	g.Expect(auth.MapRoles[0].RoleARN).To(gomega.Equal(testARNs["node-1"]))
 	g.Expect(auth.MapRoles[0].Username).To(gomega.Equal("this:is:a:test"))
 	g.Expect(auth.MapRoles[0].Groups).To(gomega.Equal([]string{"system:some-role"}))
@@ -259,7 +259,7 @@ func TestMapper_UpsertWithCreate(t *testing.T) {
 func TestMapper_UpsertWithRetries(t *testing.T) {
 	g := gomega.NewWithT(t)
 	gomega.RegisterTestingT(t)
-	client := fake.NewSimpleClientset()
+	client := fake.NewClientset()
 	mapper := NewMapper(client, true)
 	createMockConfigMap(client)
 
@@ -287,12 +287,12 @@ func TestMapper_UpsertWithRetries(t *testing.T) {
 
 	auth, _, err := ReadAuthMap(client)
 	g.Expect(err).NotTo(gomega.HaveOccurred())
-	g.Expect(len(auth.MapRoles)).To(gomega.HaveLen(1))
-	g.Expect(len(auth.MapUsers)).To(gomega.HaveLen(1))
+	g.Expect(len(auth.MapRoles)).To(gomega.Equal(1))
+	g.Expect(len(auth.MapUsers)).To(gomega.Equal(2))
 	g.Expect(auth.MapRoles[0].RoleARN).To(gomega.Equal(testARNs["node-1"]))
 	g.Expect(auth.MapRoles[0].Username).To(gomega.Equal("system:node:{{EC2PrivateDNSName}}"))
 	g.Expect(auth.MapRoles[0].Groups).To(gomega.Equal([]string{"system:some-role"}))
 	g.Expect(auth.MapUsers[0].UserARN).To(gomega.Equal(testARNs["user-1"]))
 	g.Expect(auth.MapUsers[0].Username).To(gomega.Equal("admin"))
-	g.Expect(auth.MapUsers[0].Groups).To(gomega.Equal([]string{"system:some-role"}))
+	g.Expect(auth.MapUsers[0].Groups).To(gomega.Equal([]string{"system:masters"}))
 }

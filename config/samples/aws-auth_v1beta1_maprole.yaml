@@ -6,7 +6,7 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
   name: maprole-prod-self-managed-node-group
 spec:
-  rolearn: arn:aws:iam::130488995195:role/prod-self-managed-node-group
+  rolearn: arn:aws:iam::123456789012:role/prod-self-managed-node-group
   groups:
     - sample:group1
     - sample:group2
@@ -23,7 +23,7 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
   name: maprole-self-mng-single-az-node-group
 spec:
-  rolearn: arn:aws:iam::130488995195:role/self-mng-single-az-node-group-20240218223715755100000001
+  rolearn: arn:aws:iam::123456789012:role/self-mng-single-az-node-group-20240218223715755100000001
   groups:
     - sample:group1
     - sample:group2

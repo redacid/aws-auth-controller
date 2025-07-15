@@ -32,12 +32,7 @@ import (
 	"strings"
 )
 
-func init() {
-	//log.SetFlags(0)
-}
-
 const (
-	// ConfigMapName      = "aws-auth"
 	ConfigMapNamespace = "kube-system"
 )
 
@@ -273,6 +268,10 @@ func (r *MapAccount) String() string {
 	var s strings.Builder
 	s.WriteString(fmt.Sprintf("- accountid: %v\n  ", r.AccountID))
 	return s.String()
+}
+
+func (r *MapAccount) String2() string {
+	return fmt.Sprintf("- %s", r.AccountID)
 }
 
 func NewMapAccount(accountid string) *MapAccount {

@@ -34,8 +34,9 @@ func createMockConfigMap(client kubernetes.Interface) {
 
 	user := NewMapUser(
 		"arn:aws:iam::00000000000:user/user-1",
-		"testcrd",
+		"admin",
 		[]string{"system:masters"})
+	account := NewMapAccount("111111111111")
 
 	configMap := &v1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
@@ -43,8 +44,9 @@ func createMockConfigMap(client kubernetes.Interface) {
 			Namespace: ConfigMapNamespace,
 		},
 		Data: map[string]string{
-			"mapRoles": role.String(),
-			"mapUsers": user.String(),
+			"mapRoles":    role.String(),
+			"mapUsers":    user.String(),
+			"mapAccounts": account.String2(),
 		},
 	}
 	_, err := client.CoreV1().ConfigMaps(ConfigMapNamespace).Create(
@@ -59,7 +61,7 @@ func createMockConfigMap(client kubernetes.Interface) {
 func TestUpdateAuthMap(t *testing.T) {
 	g := gomega.NewWithT(t)
 	gomega.RegisterTestingT(t)
-	client := fake.NewSimpleClientset()
+	client := fake.NewClientset()
 	createMockConfigMap(client)
 
 	auth, cm, err := ReadAuthMap(client)
@@ -68,11 +70,13 @@ func TestUpdateAuthMap(t *testing.T) {
 	role := NewMapRole("arn:aws:iam::00000000000:role/node-2",
 		"system:node:{{EC2PrivateDNSName}}",
 		[]string{"system:bootstrappers", "system:nodes"})
-	user := NewMapUser("testcrd", "arn:aws:iam::00000000000:user/user-2",
+	user := NewMapUser("arn:aws:iam::00000000000:user/user-2", "admin",
 		[]string{"system:masters"})
+	account := NewMapAccount("222222222222")
 
 	auth.MapRoles = append(auth.MapRoles, role)
 	auth.MapUsers = append(auth.MapUsers, user)
+	auth.MapAccounts = append(auth.MapAccounts, account)
 
 	err = UpdateAuthMap(client, auth, cm)
 	g.Expect(err).NotTo(gomega.HaveOccurred())
@@ -84,12 +88,13 @@ func TestUpdateAuthMap(t *testing.T) {
 	fmt.Println(auth.MapRoles[0])
 	g.Expect(auth.MapRoles).To(gomega.HaveLen(2))
 	g.Expect(auth.MapUsers).To(gomega.HaveLen(2))
+	g.Expect(auth.MapAccounts).To(gomega.HaveLen(2))
 }
 
 func TestReadAuthMap(t *testing.T) {
 	g := gomega.NewWithT(t)
 	gomega.RegisterTestingT(t)
-	client := fake.NewSimpleClientset()
+	client := fake.NewClientset()
 	createMockConfigMap(client)
 
 	auth, _, err := ReadAuthMap(client)
@@ -103,15 +108,19 @@ func TestReadAuthMap(t *testing.T) {
 	g.Expect(auth.MapUsers[0].UserARN).To(gomega.Equal("arn:aws:iam::00000000000:user/user-1"))
 	g.Expect(auth.MapUsers[0].Username).To(gomega.Equal("admin"))
 	g.Expect(auth.MapUsers[0].Groups).To(gomega.Equal([]string{"system:masters"}))
+
+	g.Expect(auth.MapAccounts).To(gomega.HaveLen(1))
+	g.Expect(auth.MapAccounts[0].AccountID).To(gomega.Equal("111111111111"))
 }
 
 func TestNewAuthMap(t *testing.T) {
 	g := gomega.NewWithT(t)
 	gomega.RegisterTestingT(t)
-	client := fake.NewSimpleClientset()
+	client := fake.NewClientset()
 
 	auth, _, err := ReadAuthMap(client)
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 	g.Expect(auth.MapRoles).To(gomega.BeEmpty())
 	g.Expect(auth.MapUsers).To(gomega.BeEmpty())
+	g.Expect(auth.MapAccounts).To(gomega.BeEmpty())
 }

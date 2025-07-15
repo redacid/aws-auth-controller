@@ -16,6 +16,6 @@ metadata:
   labels:
     app.kubernetes.io/name: aws-auth-controller-prozorro
     app.kubernetes.io/managed-by: kustomize
-  name: account-130488995195
+  name: account-123456789012
 spec:
-  accountid: "130488995195"
+  accountid: "123456789012"

@@ -32,13 +32,17 @@ import (
 
 var _ = Describe("MapUser Controller", func() {
 	Context("When reconciling a resource", func() {
-		const resourceName = "test-resource"
+		const resourceName = "test-user-resource"
+		const userName = "test-user"
+		var groups = []string{"system:masters", "system:nodes"}
+		const userarn = "arn:aws:iam::123456789012:user/test-user"
+		const namespace = "kube-system"
 
 		ctx := context.Background()
 
 		typeNamespacedName := types.NamespacedName{
 			Name:      resourceName,
-			Namespace: "default", // TODO(user):Modify as needed
+			Namespace: namespace,
 		}
 		mapuser := &awsauthv1beta1.MapUser{}
 
@@ -49,7 +53,12 @@ var _ = Describe("MapUser Controller", func() {
 				resource := &awsauthv1beta1.MapUser{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      resourceName,
-						Namespace: "default",
+						Namespace: namespace,
+					},
+					Spec: awsauthv1beta1.MapUserSpec{
+						Username: userName,
+						Groups:   groups,
+						UserARN:  userarn,
 					},
 					// TODO(user): Specify other spec details if needed.
 				}
