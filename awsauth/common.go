@@ -21,9 +21,10 @@ import (
 	"strings"
 )
 
+// THIS NOT USED
 var AllowedAWSAccounts = []string{
 	"123456789012",
-	"130488995195",
+	"210987654321",
 }
 
 // VerifyAWSAccount validates if the provided string is a valid AWS account ID (12 digits)
@@ -164,7 +165,7 @@ func SetAllowedAWSAccounts(accounts []string) error {
 	return nil
 }
 
-// ConvertMapAccountToString конвертує MapAccountSpec в строку accountid
+// ConvertMapAccountToString convert MapAccountSpec to string accountid
 func ConvertMapAccountToString(accounts []*MapAccount) []string {
 	result := make([]string, len(accounts))
 	for i, account := range accounts {
@@ -173,7 +174,7 @@ func ConvertMapAccountToString(accounts []*MapAccount) []string {
 	return result
 }
 
-// ConvertStringToMapAccount конвертує строки accountid в MapAccountSpec
+// ConvertStringToMapAccount convert strings accountid to MapAccountSpec
 func ConvertStringToMapAccount(accountIDs []string) []*MapAccount {
 	result := make([]*MapAccount, len(accountIDs))
 	for i, accountID := range accountIDs {
@@ -185,16 +186,16 @@ func ConvertStringToMapAccount(accountIDs []string) []*MapAccount {
 }
 
 /*
-	// Конвертація з MapAccountSpec в строки
+	// Convert from MapAccountSpec to strings
 	specs := []MapAccountSpec{
 	{AccountID: "111111111111"},
 	{AccountID: "222222222222"},
 	}
 	strings := ConvertMapAccountToString(specs)
-	// результат: []string{"111111111111", "222222222222"}
+	// result: []string{"111111111111", "222222222222"}
 
-	// Конвертація зі строк в MapAccountSpec
+	// Convert from strings to MapAccountSpec
 	accountIDs := []string{"111111111111", "222222222222"}
 	specs = ConvertStringToMapAccount(accountIDs)
-	// результат: []MapAccountSpec{{AccountID: "111111111111"}, {AccountID: "222222222222"}}
+	// result: []MapAccountSpec{{AccountID: "111111111111"}, {AccountID: "222222222222"}}
 */
