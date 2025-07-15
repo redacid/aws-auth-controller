@@ -72,7 +72,7 @@ func WithRetry(fn func(*Arguments) error, args *Arguments) error {
 			// Check if error is related to ConfigMap conflict
 			if strings.Contains(err.Error(), "the object has been modified") {
 				d := bkoff.Duration()
-				logger.Info("ConfigMap conflict detected", "error", err, "retry after", d)
+				logger.Error(err, "ConfigMap conflict detected", "retry after", d)
 				time.Sleep(d)
 				counter++
 				continue

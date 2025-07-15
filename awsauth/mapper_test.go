@@ -34,7 +34,7 @@ func TestMapper_Remove(t *testing.T) {
 	g := gomega.NewWithT(t)
 	gomega.RegisterTestingT(t)
 	client := fake.NewClientset()
-	mapper := NewMapper(client, true)
+	mapper := NewMapper(client)
 	createMockConfigMap(client)
 
 	err := mapper.Remove(&Arguments{
@@ -62,7 +62,7 @@ func TestMapper_RemoveNotFound(t *testing.T) {
 	g := gomega.NewWithT(t)
 	gomega.RegisterTestingT(t)
 	client := fake.NewClientset()
-	mapper := NewMapper(client, true)
+	mapper := NewMapper(client)
 	createMockConfigMap(client)
 
 	err := mapper.Remove(&Arguments{
@@ -90,7 +90,7 @@ func TestMapper_RemoveWithRetries(t *testing.T) {
 	g := gomega.NewWithT(t)
 	gomega.RegisterTestingT(t)
 	client := fake.NewClientset()
-	mapper := NewMapper(client, true)
+	mapper := NewMapper(client)
 	createMockConfigMap(client)
 
 	err := mapper.Remove(&Arguments{
@@ -125,7 +125,7 @@ func TestMapper_UpsertInsert(t *testing.T) {
 	g := gomega.NewWithT(t)
 	gomega.RegisterTestingT(t)
 	client := fake.NewClientset()
-	mapper := NewMapper(client, true)
+	mapper := NewMapper(client)
 	createMockConfigMap(client)
 
 	err := mapper.Upsert(&Arguments{
@@ -156,7 +156,7 @@ func TestMapper_UpsertUpdate(t *testing.T) {
 	g := gomega.NewWithT(t)
 	gomega.RegisterTestingT(t)
 	client := fake.NewClientset()
-	mapper := NewMapper(client, true)
+	mapper := NewMapper(client)
 	createMockConfigMap(client)
 
 	err := mapper.Upsert(&Arguments{
@@ -224,7 +224,7 @@ func TestMapper_UpsertWithCreate(t *testing.T) {
 	g := gomega.NewWithT(t)
 	gomega.RegisterTestingT(t)
 	client := fake.NewClientset()
-	mapper := NewMapper(client, true)
+	mapper := NewMapper(client)
 
 	err := mapper.Upsert(&Arguments{
 		OperationType: UpsertOperation,
@@ -260,7 +260,7 @@ func TestMapper_UpsertWithRetries(t *testing.T) {
 	g := gomega.NewWithT(t)
 	gomega.RegisterTestingT(t)
 	client := fake.NewClientset()
-	mapper := NewMapper(client, true)
+	mapper := NewMapper(client)
 	createMockConfigMap(client)
 
 	err := mapper.Upsert(&Arguments{

@@ -59,7 +59,7 @@ func (r *MapUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 
 	// MapUser objects are named by their associated AWS IAM user ARNs.
 	log := ctrl.Log.WithValues("MapUser", req.Name, "namespace", req.Namespace)
-	log.Info("Reconciling MapUser...")
+	log.Info("Reconciling MapUser")
 
 	kubeClient, err := kube.GetClient()
 	if err != nil {
@@ -88,16 +88,16 @@ func (r *MapUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		// If any error other than a "NotFound" API error, it's a problem.
 		statusErr, ok := err.(*apierrors.StatusError)
 		if !ok || (ok && statusErr.ErrStatus.Reason != NotFound) {
-			logf.Log.Error(err, "Failure getting MapUser")
+			log.Error(err, "Failure getting MapUser")
 			return ctrl.Result{}, err
 		}
 		return ctrl.Result{}, nil
 	}
 	if mapUser.DeletionTimestamp.IsZero() {
-		// logf.Log.Info("mapUser is not being deleted: " + mapUser.Name)
+		log.V(1).Info("mapUser is not being deleted: " + mapUser.Name)
 		// Add finalizer
 		if !controllerutil.ContainsFinalizer(mapUser, awsauth.CrdFinalizerName) {
-			logf.Log.Info("Adding finalizer: " + mapUser.Name)
+			log.V(1).Info("Adding finalizer: " + mapUser.Name)
 			controllerutil.AddFinalizer(mapUser, awsauth.CrdFinalizerName)
 			if err := r.Update(ctx, mapUser); err != nil {
 				return ctrl.Result{}, err
@@ -112,7 +112,7 @@ func (r *MapUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 				log.Error(err, "Failure upserting MapUser")
 				return ctrl.Result{}, err
 			}
-			// log.Info("Upserted MapUser")
+			log.V(1).Info("Upserted MapUser")
 		}
 	} else {
 		log.Info("mapUser is being deleted")

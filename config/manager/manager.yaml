@@ -68,6 +68,11 @@ spec:
           #- --username-must-be-email
           - --leader-elect
           - --health-probe-bind-address=:8081
+          - --zap-devel=true
+          - --zap-encoder=console
+          - --zap-log-level=info
+          - --zap-time-encoding=iso8601
+          - --zap-stacktrace-level=panic
         image: controller:latest
         name: manager
         ports: []

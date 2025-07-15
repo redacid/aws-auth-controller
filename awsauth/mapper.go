@@ -92,7 +92,7 @@ const (
 )
 
 // NewMapper returns a new Mapper object.
-func NewMapper(client kubernetes.Interface, discardLogOutput bool) *Mapper {
+func NewMapper(client kubernetes.Interface) *Mapper {
 	var mapper = &Mapper{
 		KubernetesClient: client,
 		Log:              logf.Log.WithName("mapper"),
@@ -306,12 +306,12 @@ func (m *Mapper) upsertAuth(args *Arguments) error {
 				"DataType", args.DataType,
 				"Username", args.Username,
 				"RoleARN", args.RoleARN)
-		} /* else {
-			logger.Info("upsertAuth.NoNeedUpdate",
+		} else {
+			logger.V(1).Info("upsertAuth.NoNeedUpdate",
 				"DataType", args.DataType,
 				"Username", args.Username,
 				"RoleARN", args.RoleARN)
-		} */
+		}
 		authData.SetMapRoles(newMap)
 	}
 
@@ -323,12 +323,12 @@ func (m *Mapper) upsertAuth(args *Arguments) error {
 				"DataType", args.DataType,
 				"Username", args.Username,
 				"UserARN", args.UserARN)
-		} /* else {
-			logger.Info("upsertAuth.NoNeedUpdate",
+		} else {
+			logger.V(1).Info("upsertAuth.NoNeedUpdate",
 				"DataType", args.DataType,
 				"Username", args.Username,
 				"UserARN", args.UserARN)
-		} */
+		}
 		authData.SetMapUsers(newMap)
 	}
 
@@ -339,11 +339,11 @@ func (m *Mapper) upsertAuth(args *Arguments) error {
 			logger.Info("upsertAuth.Updated",
 				"DataType", args.DataType,
 				"AccountID", args.AccountID)
-		} /* else {
-			logger.Info("upsertAuth.NoNeedUpdate",
+		} else {
+			logger.V(1).Info("upsertAuth.NoNeedUpdate",
 				"DataType", args.DataType,
 				"AccountID", args.AccountID)
-		} */
+		}
 		authData.SetMapAccounts(newMap)
 	}
 

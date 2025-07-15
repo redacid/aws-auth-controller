@@ -79,8 +79,8 @@ type impl struct {
 }
 
 func (svc impl) CheckMapRoleExists(mapRole MapRole) error {
-	svc.cfg.Log.Info("CheckMapRoleExists", "username", mapRole.Username, "rolearn", mapRole.RoleARN)
-	mapper := NewMapper(svc.cfg.KubeClient, false)
+	svc.cfg.Log.V(1).Info("CheckMapRoleExists", "username", mapRole.Username, "rolearn", mapRole.RoleARN)
+	mapper := NewMapper(svc.cfg.KubeClient)
 	err := mapper.CheckExists(&Arguments{
 		DataType:      MapRoleData,
 		Username:      mapRole.Username,
@@ -98,7 +98,8 @@ func (svc impl) CheckMapRoleExists(mapRole MapRole) error {
 
 // UpsertMapRole upserts a MapRole into the configmap keyed by username.
 func (svc impl) UpsertMapRole(mapRole MapRole) error {
-	mapper := NewMapper(svc.cfg.KubeClient, false)
+	svc.cfg.Log.V(1).Info("UpsertMapRole", "username", mapRole.Username, "rolearn", mapRole.RoleARN)
+	mapper := NewMapper(svc.cfg.KubeClient)
 	err := mapper.Upsert(&Arguments{
 		DataType:      MapRoleData,
 		RoleARN:       mapRole.RoleARN,
@@ -121,7 +122,8 @@ func (svc impl) UpsertMapRole(mapRole MapRole) error {
 
 // RemoveMapRole removes a MapRole from the configmap keyed by username.
 func (svc impl) RemoveMapRole(mapRole MapRole) error {
-	mapper := NewMapper(svc.cfg.KubeClient, false)
+	svc.cfg.Log.V(1).Info("RemoveMapRole", "username", mapRole.Username, "rolearn", mapRole.RoleARN)
+	mapper := NewMapper(svc.cfg.KubeClient)
 	err := mapper.Remove(&Arguments{
 		DataType:      MapRoleData,
 		Username:      mapRole.Username,
@@ -142,8 +144,8 @@ func (svc impl) RemoveMapRole(mapRole MapRole) error {
 }
 
 func (svc impl) CheckMapUserExists(mapUser MapUser) error {
-	svc.cfg.Log.Info("CheckMapUserExists", "username", mapUser.Username, "userarn", mapUser.UserARN)
-	mapper := NewMapper(svc.cfg.KubeClient, false)
+	svc.cfg.Log.V(1).Info("CheckMapUserExists", "username", mapUser.Username, "userarn", mapUser.UserARN)
+	mapper := NewMapper(svc.cfg.KubeClient)
 	err := mapper.CheckExists(&Arguments{
 		DataType:      MapUserData,
 		Username:      mapUser.Username,
@@ -161,7 +163,8 @@ func (svc impl) CheckMapUserExists(mapUser MapUser) error {
 
 // UpsertMapUser upserts a MapUser into the configmap keyed by username.
 func (svc impl) UpsertMapUser(mapUser MapUser) error {
-	mapper := NewMapper(svc.cfg.KubeClient, false)
+	svc.cfg.Log.V(1).Info("UpsertMapUser", "username", mapUser.Username, "userarn", mapUser.UserARN)
+	mapper := NewMapper(svc.cfg.KubeClient)
 	err := mapper.Upsert(&Arguments{
 		DataType:      MapUserData,
 		UserARN:       mapUser.UserARN,
@@ -180,7 +183,8 @@ func (svc impl) UpsertMapUser(mapUser MapUser) error {
 
 // RemoveMapUser removes a MapUser from the configmap keyed by username.
 func (svc impl) RemoveMapUser(mapUser MapUser) error {
-	mapper := NewMapper(svc.cfg.KubeClient, false)
+	svc.cfg.Log.V(1).Info("RemoveMapUser", "username", mapUser.Username, "userarn", mapUser.UserARN)
+	mapper := NewMapper(svc.cfg.KubeClient)
 	err := mapper.Remove(&Arguments{
 		DataType:      MapUserData,
 		Username:      mapUser.Username,
@@ -197,8 +201,8 @@ func (svc impl) RemoveMapUser(mapUser MapUser) error {
 }
 
 func (svc impl) CheckMapAccountExists(mapAccount MapAccount) error {
-	svc.cfg.Log.Info("CheckAccountExists", "accountid", mapAccount.AccountID)
-	mapper := NewMapper(svc.cfg.KubeClient, false)
+	svc.cfg.Log.V(1).Info("CheckAccountExists", "accountid", mapAccount.AccountID)
+	mapper := NewMapper(svc.cfg.KubeClient)
 	err := mapper.CheckExists(&Arguments{
 		DataType:      MapAccountData,
 		AccountID:     mapAccount.AccountID,
@@ -215,7 +219,8 @@ func (svc impl) CheckMapAccountExists(mapAccount MapAccount) error {
 
 // UpsertMapAccount upserts a MapAccount into the configmap keyed by username.
 func (svc impl) UpsertMapAccount(mapAccount MapAccount) error {
-	mapper := NewMapper(svc.cfg.KubeClient, false)
+	svc.cfg.Log.V(1).Info("UpsertMapAccount", "accountid", mapAccount.AccountID)
+	mapper := NewMapper(svc.cfg.KubeClient)
 	err := mapper.Upsert(&Arguments{
 		DataType:      MapAccountData,
 		AccountID:     mapAccount.AccountID,
@@ -232,7 +237,8 @@ func (svc impl) UpsertMapAccount(mapAccount MapAccount) error {
 
 // RemoveMapAccount removes a MapAccount from the configmap keyed by account id.
 func (svc impl) RemoveMapAccount(mapAccount MapAccount) error {
-	mapper := NewMapper(svc.cfg.KubeClient, false)
+	svc.cfg.Log.V(1).Info("RemoveMapAccount", "accountid", mapAccount.AccountID)
+	mapper := NewMapper(svc.cfg.KubeClient)
 	err := mapper.Remove(&Arguments{
 		DataType:      MapAccountData,
 		AccountID:     mapAccount.AccountID,
@@ -242,7 +248,7 @@ func (svc impl) RemoveMapAccount(mapAccount MapAccount) error {
 		MinRetryTime:  svc.cfg.MinRetryTime,
 	})
 	if err != nil {
-		svc.cfg.Log.Info("mapAccount not found", "account id", mapAccount.AccountID)
+		svc.cfg.Log.Info("mapAccount not found", "accountid", mapAccount.AccountID)
 	}
 	return err
 }

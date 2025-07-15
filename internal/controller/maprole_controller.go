@@ -57,7 +57,7 @@ func (r *MapRoleReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	_ = logf.FromContext(ctx)
 
 	log := ctrl.Log.WithValues("MapRole", req.Name, "namespace", req.Namespace)
-	log.Info("Reconciling MapRole...")
+	log.Info("Reconciling MapRole")
 
 	kubeClient, err := kube.GetClient()
 	if err != nil {
@@ -93,10 +93,10 @@ func (r *MapRoleReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	}
 
 	if mapRole.DeletionTimestamp.IsZero() {
-		// logf.Log.Info("mapRole is not being deleted: " + mapRole.Name)
+		log.V(1).Info("mapRole is not being deleted: " + mapRole.Name)
 		// Add finalizer
 		if !controllerutil.ContainsFinalizer(mapRole, awsauth.CrdFinalizerName) {
-			logf.Log.Info("Adding finalizer: " + mapRole.Name)
+			log.V(1).Info("Adding finalizer: " + mapRole.Name)
 			controllerutil.AddFinalizer(mapRole, awsauth.CrdFinalizerName)
 			if err := r.Update(ctx, mapRole); err != nil {
 				return ctrl.Result{}, err
@@ -111,7 +111,7 @@ func (r *MapRoleReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 				log.Error(err, "Failure upserting MapRole")
 				return ctrl.Result{}, err
 			}
-			// log.Info("Upserted MapRole")
+			log.V(1).Info("Upserted MapRole")
 		}
 	} else {
 		log.Info("mapRole is being deleted")

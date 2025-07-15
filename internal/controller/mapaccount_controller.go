@@ -56,12 +56,10 @@ type MapAccountReconciler struct {
 func (r *MapAccountReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = logf.FromContext(ctx)
 
-	// TODO(user): your logic here
-
 	// MapAccount objects a list of AWS Accounts.
 
 	log := ctrl.Log.WithValues("MapAccount", req.Name, "namespace", req.Namespace)
-	log.Info("Reconciling MapAccount...")
+	log.Info("Reconciling MapAccount")
 
 	kubeClient, err := kube.GetClient()
 	if err != nil {
@@ -90,17 +88,17 @@ func (r *MapAccountReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		// If any error other than a "NotFound" API error, it's a problem.
 		statusErr, ok := err.(*apierrors.StatusError)
 		if !ok || (ok && statusErr.ErrStatus.Reason != NotFound) {
-			logf.Log.Error(err, "Failure getting mapAccount")
+			log.Error(err, "Failure getting mapAccount")
 			return ctrl.Result{}, err
 		}
 		return ctrl.Result{}, nil
 	}
 	// examine DeletionTimestamp to determine if object is under deletion
 	if mapAccount.DeletionTimestamp.IsZero() {
-		// logf.Log.Info("mapAccount is not being deleted: " + mapAccount.Name)
+		log.V(1).Info("mapAccount is not being deleted")
 		// Add finalizer
 		if !controllerutil.ContainsFinalizer(mapAccount, awsauth.CrdFinalizerName) {
-			logf.Log.Info("Adding finalizer: " + mapAccount.Name)
+			log.V(1).Info("Adding finalizer: " + mapAccount.Name)
 			controllerutil.AddFinalizer(mapAccount, awsauth.CrdFinalizerName)
 			if err := r.Update(ctx, mapAccount); err != nil {
 				return ctrl.Result{}, err
@@ -113,7 +111,7 @@ func (r *MapAccountReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 				log.Error(err, "Failure upserting MapAccount")
 				return ctrl.Result{}, err
 			}
-			// log.Info("Upserted MapAccount")
+			log.V(1).Info("Upserted MapAccount")
 		}
 
 	} else {
