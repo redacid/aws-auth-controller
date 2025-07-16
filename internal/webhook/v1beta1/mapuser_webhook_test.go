@@ -17,11 +17,14 @@ limitations under the License.
 package v1beta1
 
 import (
+	"context"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	// v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	awsauthv1beta1 "github.com/redacid/aws-auth-controller/api/v1beta1"
-	// TODO (user): Add any additional imports if needed
 )
 
 var _ = Describe("MapUser Webhook", func() {
@@ -32,6 +35,19 @@ var _ = Describe("MapUser Webhook", func() {
 		defaulter MapUserCustomDefaulter
 	)
 
+	const ResourceName = "test-user-resource"
+	const PresentResourceName = "test-user-resource-present"
+	const PresentUsername = "test-user-present"
+	const PresentUserARN = "arn:aws:iam::123456789012:user/test-user-present"
+	var PresentGroups = []string{"system:users", "system:viewers"}
+	const UserName = "test-user"
+	const OldUserName = "test-user-old"
+	const OldUserARN = "arn:aws:iam::123456789012:user/test-user-old"
+	var OldGroups = []string{"system:users", "system:viewers"}
+	var Groups = []string{"system:masters", "system:nodes"}
+	const UserARN = "arn:aws:iam::123456789012:user/test-user"
+	const Namespace = "default"
+
 	BeforeEach(func() {
 		obj = &awsauthv1beta1.MapUser{}
 		oldObj = &awsauthv1beta1.MapUser{}
@@ -41,7 +57,6 @@ var _ = Describe("MapUser Webhook", func() {
 		Expect(defaulter).NotTo(BeNil(), "Expected defaulter to be initialized")
 		Expect(oldObj).NotTo(BeNil(), "Expected oldObj to be initialized")
 		Expect(obj).NotTo(BeNil(), "Expected obj to be initialized")
-		// TODO (user): Add any setup logic common to all tests
 	})
 
 	AfterEach(func() {
@@ -62,26 +77,92 @@ var _ = Describe("MapUser Webhook", func() {
 	})
 
 	Context("When creating or updating MapUser under Validating Webhook", func() {
-		// TODO (user): Add logic for validating webhooks
-		// Example:
-		// It("Should deny creation if a required field is missing", func() {
-		//     By("simulating an invalid creation scenario")
-		//     obj.SomeRequiredField = ""
-		//     Expect(validator.ValidateCreate(ctx, obj)).Error().To(HaveOccurred())
-		// })
-		//
-		// It("Should admit creation if all required fields are present", func() {
-		//     By("simulating an invalid creation scenario")
-		//     obj.SomeRequiredField = "valid_value"
-		//     Expect(validator.ValidateCreate(ctx, obj)).To(BeNil())
-		// })
-		//
-		// It("Should validate updates correctly", func() {
-		//     By("simulating a valid update scenario")
-		//     oldObj.SomeRequiredField = "updated_value"
-		//     obj.SomeRequiredField = "updated_value"
-		//     Expect(validator.ValidateUpdate(ctx, oldObj, obj)).To(BeNil())
-		// })
-	})
 
+		It("Should MapUser created", func() {
+			By("By creating a new MapUser")
+			ctx := context.Background()
+			mapUser := &awsauthv1beta1.MapUser{
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "aws-auth.prozorro.sale/v1beta1",
+					Kind:       "MapUser",
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      PresentResourceName,
+					Namespace: Namespace,
+				},
+				Spec: awsauthv1beta1.MapUserSpec{
+					Username: PresentUsername,
+					Groups:   PresentGroups,
+					UserARN:  PresentUserARN,
+				},
+			}
+			Expect(k8sClient.Create(ctx, mapUser)).To(Succeed())
+		})
+		It("Should MapUser create new user with same Username", func() {
+			By("By invalid creating a new MapUser same Username")
+			ctx := context.Background()
+			mapUser := &awsauthv1beta1.MapUser{
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "aws-auth.prozorro.sale/v1beta1",
+					Kind:       "MapUser",
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      ResourceName,
+					Namespace: Namespace,
+				},
+				Spec: awsauthv1beta1.MapUserSpec{
+					Username: PresentUsername,
+					Groups:   PresentGroups,
+					UserARN:  UserARN,
+				},
+			}
+			Expect(k8sClient.Create(ctx, mapUser)).Error().To(HaveOccurred())
+		})
+		It("Should MapUser create new user with same UserARN", func() {
+			By("By invalid creating a new MapUser same UserARN")
+			ctx := context.Background()
+			mapUser := &awsauthv1beta1.MapUser{
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "aws-auth.prozorro.sale/v1beta1",
+					Kind:       "MapUser",
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      ResourceName,
+					Namespace: Namespace,
+				},
+				Spec: awsauthv1beta1.MapUserSpec{
+					Username: UserName,
+					Groups:   PresentGroups,
+					UserARN:  PresentUserARN,
+				},
+			}
+			Expect(k8sClient.Create(ctx, mapUser)).Error().To(HaveOccurred())
+		})
+		It("Should validate incorrect updates", func() {
+			By("simulating a invalid update scenario")
+			oldObj.Spec.Username = OldUserName
+			oldObj.Spec.Groups = OldGroups
+			oldObj.Spec.UserARN = OldUserARN
+			oldObj.Namespace = Namespace
+			obj.Name = ResourceName
+			obj.Spec.Groups = Groups
+			obj.Spec.UserARN = UserARN
+			obj.Spec.Username = UserName
+			obj.Namespace = Namespace
+			Expect(validator.ValidateUpdate(ctx, oldObj, obj)).Error().To(HaveOccurred())
+		})
+		It("Should validate updates correctly", func() {
+			By("simulating a valid update scenario")
+			oldObj.Spec.Username = UserName
+			oldObj.Spec.Groups = OldGroups
+			oldObj.Spec.UserARN = UserARN
+			oldObj.Namespace = Namespace
+			obj.Name = ResourceName
+			obj.Spec.Groups = Groups
+			obj.Spec.UserARN = UserARN
+			obj.Spec.Username = UserName
+			obj.Namespace = Namespace
+			Expect(validator.ValidateUpdate(ctx, oldObj, obj)).To(BeNil())
+		})
+	})
 })

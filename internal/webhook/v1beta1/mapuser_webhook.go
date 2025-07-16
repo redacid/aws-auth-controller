@@ -118,7 +118,7 @@ func (v *MapUserCustomValidator) ValidateCreate(ctx context.Context, obj runtime
 			return nil, fmt.Errorf("namespace %s is NOT allowed for creation MapUser", mapuser.GetNamespace())
 		}
 	}
-	// -----
+
 	var mapUserList awsauthv1beta1.MapUserList
 	if err := v.Client.List(ctx, &mapUserList); err != nil {
 		return nil, err
@@ -130,39 +130,10 @@ func (v *MapUserCustomValidator) ValidateCreate(ctx context.Context, obj runtime
 				mapuser.Spec.Username, mapuser.Spec.UserARN, existingUser.GetName())
 		}
 	}
-	// -----
 
 	if err := awsauth.VerifyUsername(mapuser.Spec.Username, awsauth.UsernameMustBeEmail); err != nil {
 		return nil, err
 	}
-
-	/*		kubeClient, err := kube.GetClient()
-			if err != nil {
-				mapuserlog.Error(err, "Failure getting kube client")
-				return nil, err
-			}
-
-			// Get a new aws auth service object.
-			awsauthSvc, err := awsauth.NewService(&awsauth.ServiceConfig{
-				KubeClient:    kubeClient,
-				Log:           ctrl.Log,
-				MaxRetryCount: 5,
-			})
-			if err != nil {
-				mapuserlog.Error(err, "Failure creating new aws auth service")
-				return nil, err
-			}
-
-			if err := awsauthSvc.CheckMapUserExists(awsauth.MapUser{
-				Username: mapuser.Spec.Username,
-				UserARN:  mapuser.Spec.UserARN,
-				Groups:   mapuser.Spec.Groups,
-			}); err != nil {
-				mapuserlog.Info("Failure checking, username or userarn exists in aws-auth configmap")
-				return nil, fmt.Errorf("failure checking, username %v or userarn %v exists in aws-auth configmap", mapuser.Spec.Username, mapuser.Spec.UserARN)
-			} else {
-				mapuserlog.Info("username and userarn not exists in aws-auth configmap")
-			}*/
 
 	return nil, nil
 }

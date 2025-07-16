@@ -17,11 +17,13 @@ limitations under the License.
 package v1beta1
 
 import (
+	"context"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	awsauthv1beta1 "github.com/redacid/aws-auth-controller/api/v1beta1"
-	// TODO (user): Add any additional imports if needed
 )
 
 var _ = Describe("MapRole Webhook", func() {
@@ -32,6 +34,19 @@ var _ = Describe("MapRole Webhook", func() {
 		defaulter MapRoleCustomDefaulter
 	)
 
+	const ResourceName = "test-role-resource"
+	const PresentResourceName = "test-role-resource-present"
+	const PresentUsername = "test-user-present"
+	const PresentRoleARN = "arn:aws:iam::123456789012:role/test-role-present"
+	var PresentGroups = []string{"system:users", "system:viewers"}
+	const UserName = "test-role"
+	const OldUserName = "test-role-old"
+	const OldRoleARN = "arn:aws:iam::123456789012:role/test-role"
+	var OldGroups = []string{"system:users", "system:viewers"}
+	var Groups = []string{"system:masters", "system:nodes"}
+	const RoleARN = "arn:aws:iam::123456789012:role/test-role"
+	const Namespace = "default"
+
 	BeforeEach(func() {
 		obj = &awsauthv1beta1.MapRole{}
 		oldObj = &awsauthv1beta1.MapRole{}
@@ -41,7 +56,6 @@ var _ = Describe("MapRole Webhook", func() {
 		Expect(defaulter).NotTo(BeNil(), "Expected defaulter to be initialized")
 		Expect(oldObj).NotTo(BeNil(), "Expected oldObj to be initialized")
 		Expect(obj).NotTo(BeNil(), "Expected obj to be initialized")
-		// TODO (user): Add any setup logic common to all tests
 	})
 
 	AfterEach(func() {
@@ -62,26 +76,76 @@ var _ = Describe("MapRole Webhook", func() {
 	})
 
 	Context("When creating or updating MapRole under Validating Webhook", func() {
-		// TODO (user): Add logic for validating webhooks
-		// Example:
-		// It("Should deny creation if a required field is missing", func() {
-		//     By("simulating an invalid creation scenario")
-		//     obj.SomeRequiredField = ""
-		//     Expect(validator.ValidateCreate(ctx, obj)).Error().To(HaveOccurred())
-		// })
-		//
-		// It("Should admit creation if all required fields are present", func() {
-		//     By("simulating an invalid creation scenario")
-		//     obj.SomeRequiredField = "valid_value"
-		//     Expect(validator.ValidateCreate(ctx, obj)).To(BeNil())
-		// })
-		//
-		// It("Should validate updates correctly", func() {
-		//     By("simulating a valid update scenario")
-		//     oldObj.SomeRequiredField = "updated_value"
-		//     obj.SomeRequiredField = "updated_value"
-		//     Expect(validator.ValidateUpdate(ctx, oldObj, obj)).To(BeNil())
-		// })
+
+		It("Should MapRole created", func() {
+			By("By creating a new MapRole")
+			ctx := context.Background()
+			mapRole := &awsauthv1beta1.MapRole{
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "aws-auth.prozorro.sale/v1beta1",
+					Kind:       "MapRole",
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      PresentResourceName,
+					Namespace: Namespace,
+				},
+				Spec: awsauthv1beta1.MapRoleSpec{
+					Username: PresentUsername,
+					Groups:   PresentGroups,
+					RoleARN:  PresentRoleARN,
+				},
+			}
+			Expect(k8sClient.Create(ctx, mapRole)).To(Succeed())
+		})
+
+		It("Should MapRole create new user with same data", func() {
+			By("By invalid creating a new MapRole same data")
+			ctx := context.Background()
+			mapRole := &awsauthv1beta1.MapRole{
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "aws-auth.prozorro.sale/v1beta1",
+					Kind:       "MapRole",
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      ResourceName,
+					Namespace: Namespace,
+				},
+				Spec: awsauthv1beta1.MapRoleSpec{
+					Username: PresentUsername,
+					Groups:   PresentGroups,
+					RoleARN:  PresentRoleARN,
+				},
+			}
+			Expect(k8sClient.Create(ctx, mapRole)).Error().To(HaveOccurred())
+		})
+
+		It("Should validate incorrect updates", func() {
+			By("simulating a invalid update scenario")
+			oldObj.Spec.Username = OldUserName
+			oldObj.Spec.Groups = OldGroups
+			oldObj.Spec.RoleARN = OldRoleARN
+			oldObj.Namespace = Namespace
+			obj.Name = ResourceName
+			obj.Spec.Groups = Groups
+			obj.Spec.RoleARN = RoleARN
+			obj.Spec.Username = UserName
+			obj.Namespace = Namespace
+			Expect(validator.ValidateUpdate(ctx, oldObj, obj)).Error().To(HaveOccurred())
+		})
+
+		It("Should validate updates correctly", func() {
+			By("simulating a valid update scenario")
+			oldObj.Spec.Username = UserName
+			oldObj.Spec.Groups = OldGroups
+			oldObj.Spec.RoleARN = RoleARN
+			oldObj.Namespace = Namespace
+			obj.Name = ResourceName
+			obj.Spec.Groups = Groups
+			obj.Spec.RoleARN = RoleARN
+			obj.Spec.Username = UserName
+			obj.Namespace = Namespace
+			Expect(validator.ValidateUpdate(ctx, oldObj, obj)).To(BeNil())
+		})
 	})
 
 })

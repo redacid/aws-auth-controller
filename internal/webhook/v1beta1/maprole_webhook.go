@@ -119,7 +119,6 @@ func (v *MapRoleCustomValidator) ValidateCreate(ctx context.Context, obj runtime
 		}
 	}
 
-	// -----
 	var mapRoleList awsauthv1beta1.MapRoleList
 	if err := v.Client.List(ctx, &mapRoleList); err != nil {
 		return nil, err
@@ -131,35 +130,6 @@ func (v *MapRoleCustomValidator) ValidateCreate(ctx context.Context, obj runtime
 				maprole.Spec.Username, maprole.Spec.RoleARN, existingUser.GetName())
 		}
 	}
-	// -----
-
-	/*	kubeClient, err := kube.GetClient()
-		if err != nil {
-			mapuserlog.Error(err, "Failure getting kube client")
-			return nil, err
-		}
-
-		// Get a new aws auth service object.
-		awsauthSvc, err := awsauth.NewService(&awsauth.ServiceConfig{
-			KubeClient:    kubeClient,
-			Log:           ctrl.Log,
-			MaxRetryCount: 5,
-		})
-		if err != nil {
-			mapuserlog.Error(err, "Failure creating new aws auth service")
-			return nil, err
-		}
-
-		if err := awsauthSvc.CheckMapRoleExists(awsauth.MapRole{
-			Username: maprole.Spec.Username,
-			RoleARN:  maprole.Spec.RoleARN,
-			Groups:   maprole.Spec.Groups,
-		}); err != nil {
-			mapuserlog.Info("Failure checking, username or userarn exists in aws-auth configmap")
-			return nil, fmt.Errorf("failure checking, username %v or rolearn %v exists in aws-auth configmap", maprole.Spec.Username, maprole.Spec.RoleARN)
-		} else {
-			mapuserlog.Info("username and rolearn not exists in aws-auth configmap")
-		}*/
 
 	return nil, nil
 }

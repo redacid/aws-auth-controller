@@ -17,11 +17,13 @@ limitations under the License.
 package v1beta1
 
 import (
+	"context"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	awsauthv1beta1 "github.com/redacid/aws-auth-controller/api/v1beta1"
-	// TODO (user): Add any additional imports if needed
 )
 
 var _ = Describe("MapAccount Webhook", func() {
@@ -30,6 +32,14 @@ var _ = Describe("MapAccount Webhook", func() {
 		oldObj    *awsauthv1beta1.MapAccount
 		validator MapAccountCustomValidator
 		defaulter MapAccountCustomDefaulter
+	)
+	const (
+		ResourceName        = "test-account-resource"
+		PresentResourceName = "test-account-resource-present"
+		PresentAccountID    = "333333333333"
+		AccountID           = "111111111111"
+		OldAccountID        = "222222222222"
+		Namespace           = "default"
 	)
 
 	BeforeEach(func() {
@@ -41,7 +51,6 @@ var _ = Describe("MapAccount Webhook", func() {
 		Expect(defaulter).NotTo(BeNil(), "Expected defaulter to be initialized")
 		Expect(oldObj).NotTo(BeNil(), "Expected oldObj to be initialized")
 		Expect(obj).NotTo(BeNil(), "Expected obj to be initialized")
-		// TODO (user): Add any setup logic common to all tests
 	})
 
 	AfterEach(func() {
@@ -62,26 +71,54 @@ var _ = Describe("MapAccount Webhook", func() {
 	})
 
 	Context("When creating or updating MapAccount under Validating Webhook", func() {
-		// TODO (user): Add logic for validating webhooks
-		// Example:
-		// It("Should deny creation if a required field is missing", func() {
-		//     By("simulating an invalid creation scenario")
-		//     obj.SomeRequiredField = ""
-		//     Expect(validator.ValidateCreate(ctx, obj)).Error().To(HaveOccurred())
-		// })
-		//
-		// It("Should admit creation if all required fields are present", func() {
-		//     By("simulating an invalid creation scenario")
-		//     obj.SomeRequiredField = "valid_value"
-		//     Expect(validator.ValidateCreate(ctx, obj)).To(BeNil())
-		// })
-		//
-		// It("Should validate updates correctly", func() {
-		//     By("simulating a valid update scenario")
-		//     oldObj.SomeRequiredField = "updated_value"
-		//     obj.SomeRequiredField = "updated_value"
-		//     Expect(validator.ValidateUpdate(ctx, oldObj, obj)).To(BeNil())
-		// })
+
+		It("Should MapAccount created", func() {
+			By("By creating a new MapAccount")
+			ctx := context.Background()
+			mapAccount := &awsauthv1beta1.MapAccount{
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "aws-auth.prozorro.sale/v1beta1",
+					Kind:       "MapAccount",
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      PresentResourceName,
+					Namespace: Namespace,
+				},
+				Spec: awsauthv1beta1.MapAccountSpec{
+					AccountID: PresentAccountID,
+				},
+			}
+			Expect(k8sClient.Create(ctx, mapAccount)).To(Succeed())
+		})
+
+		It("Should MapAccount create new account with same data", func() {
+			By("By invalid creating a new MapAccount same account id")
+			ctx := context.Background()
+			mapAccount := &awsauthv1beta1.MapAccount{
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "aws-auth.prozorro.sale/v1beta1",
+					Kind:       "MapAccount",
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      ResourceName,
+					Namespace: Namespace,
+				},
+				Spec: awsauthv1beta1.MapAccountSpec{
+					AccountID: PresentAccountID,
+				},
+			}
+			Expect(k8sClient.Create(ctx, mapAccount)).Error().To(HaveOccurred())
+		})
+
+		It("Should validate incorrect updates", func() {
+			By("simulating a invalid update scenario")
+			oldObj.Spec.AccountID = OldAccountID
+			oldObj.Namespace = Namespace
+			obj.Name = ResourceName
+			obj.Spec.AccountID = AccountID
+			obj.Namespace = Namespace
+			Expect(validator.ValidateUpdate(ctx, oldObj, obj)).Error().To(HaveOccurred())
+		})
 	})
 
 })

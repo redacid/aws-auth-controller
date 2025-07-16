@@ -106,7 +106,7 @@ func (v *MapAccountCustomValidator) ValidateCreate(ctx context.Context, obj runt
 	mapaccountlog.Info("Validation for MapAccount upon creation",
 		"name",
 		mapaccount.GetName(),
-		"AccountID", mapaccount.Spec,
+		"AccountID", mapaccount.Spec.AccountID,
 	)
 
 	if awsauth.CrdItemAllowedNamespace != "" {
@@ -116,7 +116,6 @@ func (v *MapAccountCustomValidator) ValidateCreate(ctx context.Context, obj runt
 		}
 	}
 
-	// -----
 	var mapAccountList awsauthv1beta1.MapAccountList
 	if err := v.Client.List(ctx, &mapAccountList); err != nil {
 		return nil, err
@@ -127,32 +126,6 @@ func (v *MapAccountCustomValidator) ValidateCreate(ctx context.Context, obj runt
 				mapaccount.Spec.AccountID, existingAccount.GetName())
 		}
 	}
-	// -----
-
-	/*	kubeClient, err := kube.GetClient()
-		if err != nil {
-			mapaccountlog.Error(err, "Failure getting kube client")
-			return nil, err
-		}
-
-		// Get a new aws auth service object.
-		awsauthSvc, err := awsauth.NewService(&awsauth.ServiceConfig{
-			KubeClient: kubeClient,
-			// Log:        r.Log,
-			Log:           ctrl.Log,
-			MaxRetryCount: 5,
-		})
-		if err != nil {
-			mapaccountlog.Error(err, "Failure creating new aws auth service")
-			return nil, err
-		}
-
-		if err = awsauthSvc.CheckMapAccountExists(awsauth.MapAccount{
-			AccountID: mapaccount.Spec.AccountID,
-		}); err != nil {
-			mapaccountlog.Info("Failure checking, account exists in aws-auth configmap")
-			return nil, fmt.Errorf("failure checking, accountid %v exists in aws-auth configmap", mapaccount.Spec.AccountID)
-		}*/
 
 	return nil, nil
 }
