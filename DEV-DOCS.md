@@ -9,8 +9,8 @@ kubebuilder create webhook --group aws-auth --version v1beta1 --kind MapUser --d
 kubebuilder create webhook --group aws-auth --version v1beta1 --kind MapRole --defaulting --programmatic-validation
 kubebuilder create webhook --group aws-auth --version v1beta1 --kind MapAccount --defaulting --programmatic-validation
 
-git tag 0.0.1 -m "Test 0.0.1"
-git push origin 0.0.1
+git tag 0.1.0 -m "Test Release 0.1.0"
+git push origin 0.1.0
 
 cd ./charts helm upgrade -i --namespace kube-system aws-auth aws-auth-operator
 cd ./config/samples kubectl apply -f aws-auth_v1beta1_mapuser.yaml -n kube-system
