@@ -18,13 +18,16 @@ package controller
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/redacid/aws-auth-controller/kube"
+	_ "github.com/redacid/aws-auth-controller/kube"
+	"k8s.io/client-go/tools/clientcmd"
+	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
@@ -46,6 +49,7 @@ var (
 	testEnv   *envtest.Environment
 	cfg       *rest.Config
 	k8sClient client.Client
+	tmpDir    string
 )
 
 func TestControllers(t *testing.T) {
@@ -81,9 +85,41 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 	Expect(cfg).NotTo(BeNil())
 
-	kube.SetTestConfig(cfg)
+	tmpDir, err = os.MkdirTemp("", "test-kubeconfig")
+	Expect(err).NotTo(HaveOccurred())
+	kubeconfigPath := filepath.Join(tmpDir, "kubeconfig")
 
-	// fmt.Printf("Test environment config: %+v\n", cfg)
+	apiConfig := &clientcmdapi.Config{
+		APIVersion: "v1",
+		Kind:       "Config",
+		Clusters: map[string]*clientcmdapi.Cluster{
+			"test-cluster": {
+				Server:                   cfg.Host,
+				CertificateAuthorityData: cfg.CAData,
+			},
+		},
+		Contexts: map[string]*clientcmdapi.Context{
+			"test-context": {
+				Cluster:  "test-cluster",
+				AuthInfo: "test-user",
+			},
+		},
+		CurrentContext: "test-context",
+		AuthInfos: map[string]*clientcmdapi.AuthInfo{
+			"test-user": {
+				ClientCertificateData: cfg.CertData,
+				ClientKeyData:         cfg.KeyData,
+			},
+		},
+	}
+
+	err = clientcmd.WriteToFile(*apiConfig, kubeconfigPath)
+	Expect(err).NotTo(HaveOccurred())
+
+	err = os.Setenv("KUBECONFIG", kubeconfigPath)
+	Expect(err).NotTo(HaveOccurred())
+
+	fmt.Printf("Test environment config: %+v\n", cfg)
 
 	k8sClient, err = client.New(cfg, client.Options{Scheme: scheme.Scheme})
 	Expect(err).NotTo(HaveOccurred())
@@ -94,9 +130,21 @@ var _ = AfterSuite(func() {
 	By("tearing down the test environment")
 	cancel()
 
-	kube.ResetTestConfig()
+	// Видаляємо тимчасову директорію з kubeconfig
+	if tmpDir != "" {
+		logf.Log.Info("Removing temporary directory", "path", tmpDir)
+		err := os.RemoveAll(tmpDir)
+		if err != nil {
+			return
+		}
+	}
 
-	err := testEnv.Stop()
+	err := os.Unsetenv("KUBECONFIG")
+	if err != nil {
+		return
+	}
+
+	err = testEnv.Stop()
 	Expect(err).NotTo(HaveOccurred())
 })
 

@@ -21,7 +21,7 @@ spec:
     matchLabels:
       control-plane: controller-manager
       app.kubernetes.io/name: aws-auth-controller-prozorro
-  replicas: 1
+  replicas: 2
   template:
     metadata:
       annotations:
@@ -64,13 +64,13 @@ spec:
           - --config-map-name=aws-auth-test
           - --must-present-account-id=123456789012
           - --crd-item-allowed-namespace=kube-system
-          - --reconcile-time=30s
+          - --reconcile-time=30m
           #- --username-must-be-email
           - --leader-elect
           - --health-probe-bind-address=:8081
           - --zap-devel=true
           - --zap-encoder=console
-          - --zap-log-level=info
+          - --zap-log-level=debug
           - --zap-time-encoding=iso8601
           - --zap-stacktrace-level=panic
         image: controller:latest
