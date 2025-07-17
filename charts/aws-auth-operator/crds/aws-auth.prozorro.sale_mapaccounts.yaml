@@ -4,20 +4,20 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.18.0
-  name: mapusers.prozorro.sr.ios.in.ua
+  name: mapaccounts.aws-auth.prozorro.sale
 spec:
-  group: prozorro.sr.ios.in.ua
+  group: aws-auth.prozorro.sale
   names:
-    kind: MapUser
-    listKind: MapUserList
-    plural: mapusers
-    singular: mapuser
+    kind: MapAccount
+    listKind: MapAccountList
+    plural: mapaccounts
+    singular: mapaccount
   scope: Namespaced
   versions:
-  - name: v1alpha1
+  - name: v1beta1
     schema:
       openAPIV3Schema:
-        description: MapUser is the Schema for the mapusers API.
+        description: MapAccount is the Schema for the mapaccounts API.
         properties:
           apiVersion:
             description: |-
@@ -37,27 +37,16 @@ spec:
           metadata:
             type: object
           spec:
-            description: MapUserSpec defines the desired state of MapUser.
             properties:
-              description:
-                description: A useful description of the MapUser
-                type: string
-              groups:
-                description: The Kubernetes groups to associate with the MapUser
-                items:
-                  type: string
-                type: array
-              userarn:
-                description: The User ARN to associate with the MapUser
-                type: string
-              username:
-                description: The email address of a contact person for the MapUser
+              accountid:
+                maxLength: 12
+                minLength: 12
                 type: string
             required:
-            - userarn
+            - accountid
             type: object
           status:
-            description: MapUserStatus defines the observed state of MapUser.
+            description: MapAccountStatus defines the observed state of MapAccount.
             type: object
         type: object
     served: true

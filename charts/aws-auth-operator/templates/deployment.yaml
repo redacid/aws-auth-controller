@@ -4,7 +4,8 @@ metadata:
   labels:
     {{- include "aws-auth-operator.labels" . | nindent 4 }}
     control-plane: controller-manager
-  name: aws-auth-operator-controller-manager
+  name: {{ .Release.Name }}-controller-manager
+  namespace: {{ .Release.Namespace }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
@@ -18,7 +19,19 @@ spec:
     spec:
       containers:
       - args:
-        - --leader-elect
+          - --metrics-bind-address=:8443
+          - --config-map-name=aws-auth-test
+          - --must-present-account-id=123456789012
+          - --crd-item-allowed-namespace=kube-system
+          - --reconcile-time=30m
+          - --leader-elect
+          - --health-probe-bind-address=:8081
+          - --zap-devel=true
+          - --zap-encoder=console
+          - --zap-log-level=info
+          - --zap-time-encoding=iso8601
+          - --zap-stacktrace-level=panic
+          - --webhook-cert-path=/tmp/k8s-webhook-server/serving-certs
         command:
         - /manager
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
@@ -29,6 +42,10 @@ spec:
           initialDelaySeconds: 15
           periodSeconds: 20
         name: manager
+        ports:
+          - containerPort: 9443
+            name: webhook-server
+            protocol: TCP
         readinessProbe:
           httpGet:
             path: /readyz
@@ -39,6 +56,13 @@ spec:
          {{- toYaml .Values.resources | nindent 10 }}
         securityContext:
           allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+        volumeMounts:
+          - mountPath: /tmp/k8s-webhook-server/serving-certs
+            name: webhook-certs
+            readOnly: true
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
@@ -55,3 +79,7 @@ spec:
         {{- toYaml .Values.securityContext | nindent 8 }}
       serviceAccountName: aws-auth-operator-controller-manager
       terminationGracePeriodSeconds: 10
+      volumes:
+        - name: webhook-certs
+          secret:
+            secretName: webhook-server-cert

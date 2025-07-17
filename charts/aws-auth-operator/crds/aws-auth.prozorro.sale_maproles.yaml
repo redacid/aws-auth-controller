@@ -4,20 +4,20 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.18.0
-  name: mapaccounts.prozorro.sr.ios.in.ua
+  name: maproles.aws-auth.prozorro.sale
 spec:
-  group: prozorro.sr.ios.in.ua
+  group: aws-auth.prozorro.sale
   names:
-    kind: MapAccount
-    listKind: MapAccountList
-    plural: mapaccounts
-    singular: mapaccount
+    kind: MapRole
+    listKind: MapRoleList
+    plural: maproles
+    singular: maprole
   scope: Namespaced
   versions:
-  - name: v1alpha1
+  - name: v1beta1
     schema:
       openAPIV3Schema:
-        description: MapAccount is the Schema for the mapaccounts API.
+        description: MapRole is the Schema for the maproles API.
         properties:
           apiVersion:
             description: |-
@@ -37,15 +37,36 @@ spec:
           metadata:
             type: object
           spec:
-            description: MapAccountSpec defines the desired state of MapAccount.
+            description: MapRoleSpec defines the desired state of MapRole.
             properties:
-              foo:
-                description: Foo is an example field of MapAccount. Edit mapaccount_types.go
-                  to remove/update
+              description:
+                description: A useful description of the MapRole
+                maxLength: 254
                 type: string
+              groups:
+                description: The Kubernetes groups to associate with the MapRole
+                items:
+                  maxLength: 254
+                  minLength: 3
+                  type: string
+                minItems: 1
+                type: array
+              rolearn:
+                description: The Role ARN to associate with the MapRole
+                pattern: ^arn:aws:iam::[0-9]{12}:role/[a-zA-Z0-9+=,.@_/-]+$
+                type: string
+              username:
+                description: The username for the MapUser
+                maxLength: 254
+                minLength: 3
+                type: string
+            required:
+            - groups
+            - rolearn
+            - username
             type: object
           status:
-            description: MapAccountStatus defines the observed state of MapAccount.
+            description: MapRoleStatus defines the observed state of MapRole.
             type: object
         type: object
     served: true

@@ -4,20 +4,20 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.18.0
-  name: maproles.prozorro.sr.ios.in.ua
+  name: mapusers.aws-auth.prozorro.sale
 spec:
-  group: prozorro.sr.ios.in.ua
+  group: aws-auth.prozorro.sale
   names:
-    kind: MapRole
-    listKind: MapRoleList
-    plural: maproles
-    singular: maprole
+    kind: MapUser
+    listKind: MapUserList
+    plural: mapusers
+    singular: mapuser
   scope: Namespaced
   versions:
-  - name: v1alpha1
+  - name: v1beta1
     schema:
       openAPIV3Schema:
-        description: MapRole is the Schema for the maproles API.
+        description: MapUser is the Schema for the mapusers API.
         properties:
           apiVersion:
             description: |-
@@ -37,27 +37,36 @@ spec:
           metadata:
             type: object
           spec:
-            description: MapRoleSpec defines the desired state of MapRole.
+            description: MapUserSpec defines the desired state of MapUser.
             properties:
               description:
-                description: A useful description of the MapRole
+                description: A useful description of the MapUser
+                maxLength: 254
                 type: string
               groups:
-                description: The Kubernetes groups to associate with the MapRole
+                description: The Kubernetes groups to associate with the MapUser
                 items:
+                  maxLength: 254
+                  minLength: 3
                   type: string
+                minItems: 1
                 type: array
-              rolearn:
-                description: The Role ARN to associate with the MapRole
+              userarn:
+                description: The User ARN to associate with the MapUser
+                pattern: ^arn:aws:iam::[0-9]{12}:user/[a-zA-Z0-9+=,.@_/-]+$
                 type: string
               username:
-                description: The email address of a contact person for the MapUser
+                description: The username for the MapUser
+                maxLength: 254
+                minLength: 3
                 type: string
             required:
-            - rolearn
+            - groups
+            - userarn
+            - username
             type: object
           status:
-            description: MapRoleStatus defines the observed state of MapRole.
+            description: MapUserStatus defines the observed state of MapUser.
             type: object
         type: object
     served: true

@@ -1,0 +1,70 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  annotations:
+    cert-manager.io/inject-ca-from: {{ .Release.Namespace }}/aws-auth-operator-serving-cert
+  name: aws-auth-operator-validating-webhook-configuration
+webhooks:
+  - admissionReviewVersions:
+      - v1
+    clientConfig:
+      service:
+        name: {{ .Release.Name }}-webhook-service
+        namespace: {{ .Release.Namespace }}
+        path: /validate-aws-auth-prozorro-sale-v1beta1-mapaccount
+    failurePolicy: Fail
+    name: vmapaccount-v1beta1.kb.io
+    rules:
+      - apiGroups:
+          - aws-auth.prozorro.sale
+        apiVersions:
+          - v1beta1
+        operations:
+          - CREATE
+          - UPDATE
+          - DELETE
+        resources:
+          - mapaccounts
+    sideEffects: None
+  - admissionReviewVersions:
+      - v1
+    clientConfig:
+      service:
+        name: {{ .Release.Name }}-webhook-service
+        namespace: {{ .Release.Namespace }}
+        path: /validate-aws-auth-prozorro-sale-v1beta1-maprole
+    failurePolicy: Fail
+    name: vmaprole-v1beta1.kb.io
+    rules:
+      - apiGroups:
+          - aws-auth.prozorro.sale
+        apiVersions:
+          - v1beta1
+        operations:
+          - CREATE
+          - UPDATE
+          - DELETE
+        resources:
+          - maproles
+    sideEffects: None
+  - admissionReviewVersions:
+      - v1
+    clientConfig:
+      service:
+        name: {{ .Release.Name }}-webhook-service
+        namespace: {{ .Release.Namespace }}
+        path: /validate-aws-auth-prozorro-sale-v1beta1-mapuser
+    failurePolicy: Fail
+    name: vmapuser-v1beta1.kb.io
+    rules:
+      - apiGroups:
+          - aws-auth.prozorro.sale
+        apiVersions:
+          - v1beta1
+        operations:
+          - CREATE
+          - UPDATE
+          - DELETE
+        resources:
+          - mapusers
+    sideEffects: None

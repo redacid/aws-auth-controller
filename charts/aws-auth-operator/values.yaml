@@ -2,14 +2,14 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-replicaCount: 2
+replicaCount: 1
 
 image:
   #repository: ghcr.io/redacid/kubebuilder_test
-  repository: redacid/aws-auth-controller
+  repository: ghcr.io/redacid/aws-auth-controller
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "0.0.8"
+  tag: "0.1.0"
 
 imagePullSecrets: []
 nameOverride: ""
@@ -29,7 +29,11 @@ podAnnotations: {}
 podSecurityContext: {}
   # fsGroup: 2000
 
-securityContext: {}
+securityContext:
+  #{}
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
   # capabilities:
   #   drop:
   #   - ALL
