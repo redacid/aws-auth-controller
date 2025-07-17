@@ -12,6 +12,13 @@ kubebuilder create webhook --group aws-auth --version v1beta1 --kind MapAccount 
 git tag 0.1.0 -m "Test Release 0.1.0"
 git push origin 0.1.0
 
+
+clear && helm template ttttt ./aws-auth-operator -n nnnnn
+clear && helm upgrade -i rrrrr ./aws-auth-operator -n nnnnn --create-namespace
+helm uninstall rrrrr -n nnnnn
+
+echo | openssl s_client -servername rrrrr-webhook-service.nnnnn.svc -showcerts -connect localhost:42765 2>/dev/null | openssl x509 -inform pem -noout -text
+
 cd ./charts helm upgrade -i --namespace kube-system aws-auth aws-auth-operator
 cd ./config/samples kubectl apply -f aws-auth_v1beta1_mapuser.yaml -n kube-system
 cd ./config/samples kubectl apply -f aws-auth_v1beta1_maprole.yaml -n kube-system
@@ -24,6 +31,7 @@ https://github.com/kubernetes-sigs/controller-runtime/blob/main/pkg/reconcile/re
 https://book.kubebuilder.io/reference/watching-resources.html?highlight=RequeueAfter#when-requeueafter-x-is-useful
 
 https://github.com/gp42/aws-auth-operator
+https://github.com/keikoproj/aws-auth/
 
 Usage of ./manager:
 -config-map-name string
