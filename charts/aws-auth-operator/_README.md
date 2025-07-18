@@ -1,6 +1,6 @@
 # Kubernetes aws-auth-operator
 
-[aws-auth-operator](https://github.com/sambatv/aws-auth-operator/) is an operator to declaratively manage the EKS aws-auth configmap.
+[aws-auth-operator](https://github.com/redacid/aws-auth-controller/) is an operator to declaratively manage the EKS aws-auth configmap.
 
 ## Installing the Chart
 
@@ -8,7 +8,7 @@ Before you can install the chart you will need to add the `aws-auth-operator`
 repo to [Helm](https://helm.sh/).
 
 ```shell
-helm repo add aws-auth-operator-charts https://sambatv.github.io/aws-auth-operator/
+helm repo add aws-auth-operator-charts https://redacid.github.io/aws-auth-controller/
 ```
 
 After you've installed the repo you can install the chart.
@@ -19,7 +19,7 @@ helm upgrade --install aws-auth-operator aws-auth-operator-charts/aws-auth-opera
 
 ## Configuration
 
-The following table lists the configurable parameters of the `sambatv/aws-auth-operator`
+The following table lists the configurable parameters of the `redacid/aws-auth-operator`
 chart and their default values.
 
 | Parameter                            | Description                                                                                                                                                                                                                                                      | Default                     |

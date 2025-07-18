@@ -9,6 +9,8 @@ else
 GOBIN=$(shell go env GOBIN)
 endif
 
+CHART_PATH ?= ./charts/aws-auth-operator
+
 # CONTAINER_TOOL defines the container tool to be used for building images.
 # Be aware that the target commands are only tested with Docker which is
 # scaffolded by default. However, you might want to replace it to use other
@@ -22,6 +24,19 @@ SHELL = /usr/bin/env bash -o pipefail
 
 .PHONY: all
 all: build
+
+##@Docs
+
+.PHONY:
+install_helm-docs: ## Install helm-docs
+	wget https://github.com/norwoodj/helm-docs/releases/download/v1.14.2/helm-docs_1.14.2_Linux_x86_64.tar.gz
+	tar -zxvf helm-docs_1.14.2_Linux_x86_64.tar.gz helm-docs
+	sudo mv helm-docs ./bin/
+	rm helm-docs_1.14.2_Linux_x86_64.tar.gz
+
+.PHONY: helm-docs-generate
+helm-docs-generate: ## Generate Helm Chart Docs
+	helm-docs -c $(CHART_PATH) -o VALUES-DESCRIPTION.md
 
 ##@ General
 
