@@ -13,7 +13,7 @@ git tag 0.1.0 -m "Test Release 0.1.0"
 git push origin 0.1.0
 
 
-clear && helm template ttttt ./aws-auth-operator -n nnnnn
+clear && helm template rrrrr ./aws-auth-operator -n nnnnn
 clear && helm upgrade -i rrrrr ./aws-auth-operator -n nnnnn --create-namespace
 helm uninstall rrrrr -n nnnnn
 

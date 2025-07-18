@@ -3,7 +3,7 @@ kind: Service
 metadata:
   labels:
     {{- include "aws-auth-operator.labels" . | nindent 4 }}
-  name: {{ .Release.Name }}-webhook-service
+  name: {{ include "aws-auth-operator.fullname" . }}-webhook-service
   namespace: {{ .Release.Namespace }}
 spec:
   ports:

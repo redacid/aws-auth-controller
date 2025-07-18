@@ -1,15 +1,17 @@
+{{- if .Values.selfSignedIssuer.enabled -}}
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   labels:
     {{- include "aws-auth-operator.labels" . | nindent 4 }}
-  name: aws-auth-operator-serving-cert
+  name: {{ include "aws-auth-operator.fullname" . }}-serving-cert
   namespace: {{ .Release.Namespace }}
 spec:
   dnsNames:
-    - {{ .Release.Name }}-webhook-service.{{ .Release.Namespace }}.svc
-    - {{ .Release.Name }}-webhook-service.{{ .Release.Namespace }}.svc.cluster.local
+    - {{ include "aws-auth-operator.fullname" . }}-webhook-service.{{ .Release.Namespace }}.svc
+    - {{ include "aws-auth-operator.fullname" . }}-webhook-service.{{ .Release.Namespace }}.svc.cluster.local
   issuerRef:
     kind: Issuer
-    name: aws-auth-operator-selfsigned-issuer
-  secretName: webhook-server-cert
+    name: {{ include "aws-auth-operator.fullname" . }}-selfsigned-issuer
+  secretName: {{ include "aws-auth-operator.fullname" . }}-webhook-server-cert
+{{- end }}

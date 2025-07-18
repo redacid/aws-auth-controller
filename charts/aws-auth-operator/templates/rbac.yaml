@@ -4,7 +4,7 @@ metadata:
   labels:
     {{- include "aws-auth-operator.labels" . | nindent 4 }}
     control-plane: controller-manager
-  name: aws-auth-operator-controller-manager
+  name: {{ include "aws-auth-operator.fullname" . }}-controller-manager
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -12,7 +12,7 @@ metadata:
   labels:
     {{- include "aws-auth-operator.labels" . | nindent 4 }}
     control-plane: controller-manager
-  name: aws-auth-operator-leader-election-role
+  name: {{ include "aws-auth-operator.fullname" . }}-leader-election-role
 rules:
   - apiGroups:
       - ""
@@ -52,7 +52,7 @@ metadata:
   labels:
     {{- include "aws-auth-operator.labels" . | nindent 4 }}
     control-plane: controller-manager
-  name: aws-auth-operator-manager-role
+  name: {{ include "aws-auth-operator.fullname" . }}-manager-role
 rules:
   - apiGroups:
       - ""
@@ -118,14 +118,14 @@ metadata:
   labels:
     {{- include "aws-auth-operator.labels" . | nindent 4 }}
     control-plane: controller-manager
-  name: aws-auth-operator-leader-election-rolebinding
+  name: {{ include "aws-auth-operator.fullname" . }}-leader-election-rb
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: aws-auth-operator-leader-election-role
+  name: {{ include "aws-auth-operator.fullname" . }}-leader-election-role
 subjects:
 - kind: ServiceAccount
-  name: aws-auth-operator-controller-manager
+  name: {{ include "aws-auth-operator.fullname" . }}-controller-manager
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -133,12 +133,12 @@ metadata:
   labels:
     {{- include "aws-auth-operator.labels" . | nindent 4 }}
     control-plane: controller-manager
-  name: aws-auth-operator-manager-rolebinding
+  name: {{ include "aws-auth-operator.fullname" . }}-manager-rb
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: aws-auth-operator-manager-role
+  name: {{ include "aws-auth-operator.fullname" . }}-manager-role
 subjects:
 - kind: ServiceAccount
-  name: aws-auth-operator-controller-manager
+  name: {{ include "aws-auth-operator.fullname" . }}-controller-manager
   namespace: {{ .Release.Namespace }}

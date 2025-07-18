@@ -1,5 +1,5 @@
 apiVersion: v2
-name: aws-auth-operator-hhhhhhhhhhhhhhhhhhhh
+name: aws-auth-operator
 description: Kubernetes operator to declaratively manage the EKS aws-auth configmap
 
 # A chart can be either an 'application' or a 'library' chart.

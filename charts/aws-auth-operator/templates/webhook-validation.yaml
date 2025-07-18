@@ -2,14 +2,16 @@ apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
 metadata:
   annotations:
-    cert-manager.io/inject-ca-from: {{ .Release.Namespace }}/aws-auth-operator-serving-cert
-  name: aws-auth-operator-validating-webhook-configuration
+    {{- if .Values.selfSignedIssuer.enabled }}
+    cert-manager.io/inject-ca-from: {{ .Release.Namespace }}/{{ include "aws-auth-operator.fullname" . }}-serving-cert
+    {{- end }}
+  name: {{ include "aws-auth-operator.fullname" . }}-validating-webhook
 webhooks:
   - admissionReviewVersions:
       - v1
     clientConfig:
       service:
-        name: {{ .Release.Name }}-webhook-service
+        name: {{ include "aws-auth-operator.fullname" . }}-webhook-service
         namespace: {{ .Release.Namespace }}
         path: /validate-aws-auth-prozorro-sale-v1beta1-mapaccount
     failurePolicy: Fail
@@ -30,7 +32,7 @@ webhooks:
       - v1
     clientConfig:
       service:
-        name: {{ .Release.Name }}-webhook-service
+        name: {{ include "aws-auth-operator.fullname" . }}-webhook-service
         namespace: {{ .Release.Namespace }}
         path: /validate-aws-auth-prozorro-sale-v1beta1-maprole
     failurePolicy: Fail
@@ -51,7 +53,7 @@ webhooks:
       - v1
     clientConfig:
       service:
-        name: {{ .Release.Name }}-webhook-service
+        name: {{ include "aws-auth-operator.fullname" . }}-webhook-service
         namespace: {{ .Release.Namespace }}
         path: /validate-aws-auth-prozorro-sale-v1beta1-mapuser
     failurePolicy: Fail

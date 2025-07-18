@@ -1,9 +1,11 @@
+{{- if .Values.selfSignedIssuer.enabled -}}
 apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
   labels:
     {{- include "aws-auth-operator.labels" . | nindent 4 }}
-  name: aws-auth-operator-selfsigned-issuer
+  name: {{ include "aws-auth-operator.fullname" . }}-selfsigned-issuer
   namespace: {{ .Release.Namespace }}
 spec:
   selfSigned: {}
+{{- end }}

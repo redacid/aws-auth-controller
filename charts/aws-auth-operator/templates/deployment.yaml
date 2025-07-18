@@ -4,7 +4,7 @@ metadata:
   labels:
     {{- include "aws-auth-operator.labels" . | nindent 4 }}
     control-plane: controller-manager
-  name: {{ .Release.Name }}-controller-manager
+  name: {{ include "aws-auth-operator.fullname" . }}-controller-manager
   namespace: {{ .Release.Namespace }}
 spec:
   replicas: {{ .Values.replicaCount }}
@@ -16,22 +16,23 @@ spec:
       labels:
         {{- include "aws-auth-operator.labels" . | nindent 8 }}
         control-plane: controller-manager
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{ toYaml . | nindent 8 }}
+      {{- end }}
     spec:
       containers:
       - args:
-          - --metrics-bind-address=:8443
-          - --config-map-name=aws-auth-test
-          - --must-present-account-id=123456789012
-          - --crd-item-allowed-namespace=kube-system
-          - --reconcile-time=30m
+          - --config-map-name={{ .Values.configMapName }}
+          - --must-present-account-id={{ .Values.mustPresentAccountID }}
+          - --crd-item-allowed-namespace={{ .Values.crdCreationAllowedNS }}
+          - --reconcile-time={{ .Values.reconcileTime }}
           - --leader-elect
           - --health-probe-bind-address=:8081
-          - --zap-devel=true
-          - --zap-encoder=console
-          - --zap-log-level=info
-          - --zap-time-encoding=iso8601
-          - --zap-stacktrace-level=panic
           - --webhook-cert-path=/tmp/k8s-webhook-server/serving-certs
+        {{- with .Values.controllerArguments -}}
+          {{ toYaml . | nindent 10 }}
+        {{- end }}
         command:
         - /manager
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
@@ -55,31 +56,28 @@ spec:
         resources:
          {{- toYaml .Values.resources | nindent 10 }}
         securityContext:
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-              - ALL
+          {{- toYaml .Values.securityContext | nindent 10 }}
         volumeMounts:
           - mountPath: /tmp/k8s-webhook-server/serving-certs
             name: webhook-certs
             readOnly: true
       {{- with .Values.nodeSelector }}
       nodeSelector:
-        {{- toYaml . | nindent 8 }}
+        {{ toYaml . | nindent 8 }}
       {{- end }}
       {{- with .Values.affinity }}
       affinity:
-        {{- toYaml . | nindent 8 }}
+        {{ toYaml . | nindent 8 }}
       {{- end }}
       {{- with .Values.tolerations }}
       tolerations:
-        {{- toYaml . | nindent 8 }}
+        {{ toYaml . | nindent 8 }}
       {{- end }}
       securityContext:
-        {{- toYaml .Values.securityContext | nindent 8 }}
-      serviceAccountName: aws-auth-operator-controller-manager
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      serviceAccountName: {{ include "aws-auth-operator.fullname" . }}-controller-manager
       terminationGracePeriodSeconds: 10
       volumes:
         - name: webhook-certs
           secret:
-            secretName: webhook-server-cert
+            secretName: {{ include "aws-auth-operator.fullname" . }}-webhook-server-cert
