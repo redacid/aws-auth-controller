@@ -36,7 +36,7 @@ install_helm-docs: ## Install helm-docs
 
 .PHONY: helm-docs-generate
 helm-docs-generate: ## Generate Helm Chart Docs
-	helm-docs -c $(CHART_PATH) -o VALUES-DESCRIPTION.md
+	helm-docs -c $(CHART_PATH) -o README.md
 
 ##@ General
 

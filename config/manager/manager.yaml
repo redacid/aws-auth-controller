@@ -21,7 +21,7 @@ spec:
     matchLabels:
       control-plane: controller-manager
       app.kubernetes.io/name: aws-auth-controller-prozorro
-  replicas: 2
+  replicas: 1
   template:
     metadata:
       annotations:
