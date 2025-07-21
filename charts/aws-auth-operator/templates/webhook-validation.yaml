@@ -2,9 +2,7 @@ apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
 metadata:
   annotations:
-    {{- if .Values.selfSignedIssuer.enabled }}
     cert-manager.io/inject-ca-from: {{ .Release.Namespace }}/{{ include "aws-auth-operator.fullname" . }}-serving-cert
-    {{- end }}
   name: {{ include "aws-auth-operator.fullname" . }}-validating-webhook
 webhooks:
   - admissionReviewVersions:

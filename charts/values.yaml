@@ -77,10 +77,6 @@ affinity: {}
 podDisruptionBudget:
   enabled: false
 
-# -- Enable cert-manager issuer and create self-signed certs
-selfSignedIssuer:
-  enabled: true
-
 # -- ConfigMap for MapAccount, MapUser, MapRoles in kube-system ns, aws-auth bu default
 configMapName: "aws-auth-test"
 # -- This account id must allways present in cm, and disallow to delete crd MapAccount with this id

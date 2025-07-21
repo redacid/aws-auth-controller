@@ -27,7 +27,6 @@ Kubernetes operator to declaratively manage the EKS aws-auth configmap
 | replicaCount | int | `1` | Controller Pod replica count |
 | resources | object | `{}` | Resource requests and limits for the manager container |
 | securityContext | object | `{}` | Security context for the manager container |
-| selfSignedIssuer | object | `{"enabled":true}` | Enable cert-manager issuer and create self-signed certs |
 | tolerations | list | `[]` | Tolerations for pod assignment |
 
 ----------------------------------------------

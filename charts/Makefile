@@ -4,6 +4,7 @@ GIT_STAMP ?= $(shell git describe || echo v0.1.0)
 KUBEVAL_SCHEMA_LOCATION ?= https://raw.githubusercontent.com/redacid/k8s-json-scheme/refs/heads/main
 KUBECONFORM_SCHEMA ?= --schema-location 'https://raw.githubusercontent.com/redacid/k8s-json-scheme/refs/heads/main/{{.NormalizedKubernetesVersion}}-standalone{{.StrictSuffix}}/{{.ResourceKind}}{{.KindSuffix}}.json'
 CHART_PATH ?= ./aws-auth-operator
+CREATE_NAMESPACE ?= --create-namespace
 
 ENV_NAME ?= TEST
 
@@ -23,6 +24,19 @@ TARGET_MAX_CHAR_NUM = 30
 .EXPORT_ALL_VARIABLES:
 
 all: help
+
+## Install helm-docs | Docs
+.PHONY: install_helm-docs
+install_helm-docs:
+	wget https://github.com/norwoodj/helm-docs/releases/download/v1.14.2/helm-docs_1.14.2_Linux_x86_64.tar.gz
+	tar -zxvf helm-docs_1.14.2_Linux_x86_64.tar.gz helm-docs
+	sudo mv helm-docs ./bin/
+	rm helm-docs_1.14.2_Linux_x86_64.tar.gz
+
+## Generate Helm Chart Docs
+.PHONY: helm-docs-generate
+helm-docs-generate:
+	helm-docs -c $(CHART_PATH) -o README.md
 
 ## Check helm | Linters
 helm-lint: helm-dependency-update
@@ -45,7 +59,7 @@ helm-kubeconform: helm-dependency-update install-kubeconform-plugin
 
 ## Deploy TEST
 deploy-test:  helm-dependency-update helm-package
-	@helm upgrade -i --namespace=$(TEST_NAMESPACE) $(TEST_RELEASE_NAME) ./aws-auth-operator-$(GIT_STAMP).tgz $(TEST_VALUES)
+	@helm upgrade -i --namespace=$(TEST_NAMESPACE) $(TEST_RELEASE_NAME) ./aws-auth-operator-$(GIT_STAMP).tgz $(TEST_VALUES) $(CREATE_NAMESPACE)
 
 ## Deploy TEST
 template-test:  helm-dependency-update
