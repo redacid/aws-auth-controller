@@ -7,7 +7,44 @@
 
 This repository contains the Golang implementation of a [Kubernetes Operator](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/)
 managing the `aws-auth` ConfigMap(for testing you can set another name, see configMapName in values.yaml), built with [Kubebuilder](https://kubebuilder.io/)
-Worked with Validation Webhook
+For self-signed certs used cert-manager.io, must be present in a cluster. 
+Allow creation user-names, role-names with special characters. 
+Manipulations with all of crd resources controlled by Validation Webhook and CRDs spec.properties.
+
+```yaml
+apiVersion: aws-auth.prozorro.sale/v1beta1
+kind: MapUser
+metadata:
+  name: user1
+spec:
+  description: A test mapuser1
+  username: user1@domain.com # < this name will be stored in cm
+  groups:
+    - system:masters
+    - admins
+  userarn: arn:aws:iam::123456789012:user/user1@domain.com
+```
+```yaml
+apiVersion: aws-auth.prozorro.sale/v1beta1
+kind: MapRole
+metadata:
+  name: maprole-managed-node-group
+spec:
+  rolearn: arn:aws:iam::123456789012:role/managed-node-group
+  groups:
+    - sample:group1
+    - sample:group2
+  description: A sample maprole
+  username: system:node:{{EC2PrivateDNSName}} # < this name will be stored in cm
+```
+```yaml
+apiVersion: aws-auth.prozorro.sale/v1beta1
+kind: MapAccount
+metadata:
+  name: account-123456789012
+spec:
+  accountid: "123456789012" # < if this account id is present in mustPresentAccountID, you can't delete this crd resource 
+```
 
 ## Custom Resource Definitions
 

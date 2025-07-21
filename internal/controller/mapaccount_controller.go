@@ -81,7 +81,7 @@ func (r *MapAccountReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		return ctrl.Result{}, err
 	}
 
-	// Load the MapUser object by name (its AWS IAM user ARN).
+	// Load the MapAccount object by name.
 	mapAccount := &awsauthv1beta1.MapAccount{}
 
 	if err := r.Get(ctx, req.NamespacedName, mapAccount); err != nil {
