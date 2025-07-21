@@ -3,7 +3,7 @@ GIT_STAMP ?= $(shell git describe || echo v0.1.0)
 
 KUBEVAL_SCHEMA_LOCATION ?= https://raw.githubusercontent.com/redacid/k8s-json-scheme/refs/heads/main
 KUBECONFORM_SCHEMA ?= --schema-location 'https://raw.githubusercontent.com/redacid/k8s-json-scheme/refs/heads/main/{{.NormalizedKubernetesVersion}}-standalone{{.StrictSuffix}}/{{.ResourceKind}}{{.KindSuffix}}.json'
-CHART_PATH ?= ./aws-auth-operator
+CHART_PATH ?= ./aws-auth-controller
 CREATE_NAMESPACE ?= --create-namespace
 
 ENV_NAME ?= TEST
@@ -59,7 +59,10 @@ helm-kubeconform: helm-dependency-update install-kubeconform-plugin
 
 ## Deploy TEST
 deploy-test:  helm-dependency-update helm-package
-	@helm upgrade -i --namespace=$(TEST_NAMESPACE) $(TEST_RELEASE_NAME) ./aws-auth-operator-$(GIT_STAMP).tgz $(TEST_VALUES) $(CREATE_NAMESPACE)
+	@helm upgrade -i --namespace=$(TEST_NAMESPACE) $(TEST_RELEASE_NAME) ./aws-auth-controller-$(GIT_STAMP).tgz $(TEST_VALUES) $(CREATE_NAMESPACE)
+
+uninstall-test:
+	@helm uninstall --namespace=$(TEST_NAMESPACE) $(TEST_RELEASE_NAME)
 
 ## Deploy TEST
 template-test:  helm-dependency-update

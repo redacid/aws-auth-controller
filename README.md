@@ -3,4 +3,4 @@
 [![unit-test](https://github.com/redacid/aws-auth-controller/actions/workflows/test.yml/badge.svg?branch=init)](https://github.com/redacid/aws-auth-controller/actions/workflows/test.yml)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/redacid/aws-auth-controller/blob/init/LICENSE)
 
-[Helm chart README.md](charts/aws-auth-operator/README.md)
+[Helm chart README.md](charts/aws-auth-controller/README.md)
