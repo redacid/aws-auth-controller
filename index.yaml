@@ -1,0 +1,26 @@
+apiVersion: v1
+entries:
+  aws-auth-controller:
+  - apiVersion: v2
+    appVersion: 0.1.0
+    created: "2025-07-21T11:26:30.646553829Z"
+    description: Kubernetes operator to declaratively manage the EKS aws-auth configmap
+    digest: 9ea30868e6d5a16e83e821c688564adc402951b1c952444b4626ac5d95966bf7
+    home: https://github.com/redacid/aws-auth-controller
+    icon: https://raw.githubusercontent.com/aws/eks-charts/master/docs/logo/aws.png
+    keywords:
+    - eks
+    - aws
+    - aws-auth
+    maintainers:
+    - email: sr@ios.in.ua
+      name: Serhii Rudenko
+      url: https://github.com/redacid
+    name: aws-auth-controller
+    sources:
+    - https://github.com/redacid/aws-auth-controller
+    type: application
+    urls:
+    - https://github.com/redacid/aws-auth-controller/releases/download/0.1.0/aws-auth-controller-0.1.0.tgz
+    version: 0.1.0
+generated: "2025-07-21T11:26:30.646563477Z"
