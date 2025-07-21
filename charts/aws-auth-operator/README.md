@@ -9,24 +9,24 @@ Kubernetes operator to declaratively manage the EKS aws-auth configmap
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | affinity | object | `{}` | Affinity for pod assignment |
-| configMapName | string | `"aws-auth-test"` | ConfigMap for MapAccount, MapUser, MapRoles in kube-system ns, aws-auth bu default |
+| configMapName | string | `"aws-auth"` | ConfigMap for MapAccount, MapUser, MapRoles in kube-system ns, aws-auth bu default |
 | controllerArguments | list | `["--zap-devel=true","--zap-encoder=console","--zap-log-level=info","--zap-time-encoding=iso8601","--zap-stacktrace-level=panic"]` | Other commandline controller arguments |
-| crdCreationAllowedNS | string | `"kube-system"` | Allow creating crds only on this ns, if blank allowing in any ns |
+| crdCreationAllowedNS | string | `""` | Allow creating crds only on this ns, if blank allowing in any ns |
 | fullnameOverride | string | `""` | Override the `fullname` of the chart |
 | image.pullPolicy | string | `"IfNotPresent"` | Image pull policy |
 | image.repository | string | `"ghcr.io/redacid/aws-auth-controller"` | Image repository |
 | image.tag | string | `"0.1.0"` | Image tag, will override the default tag derived from the chart app version |
 | imagePullSecrets | list | `[]` | Image pull secrets |
-| mustPresentAccountID | string | `"123456789012"` | This account id must allways present in cm, and disallow to delete crd MapAccount with this id |
+| mustPresentAccountID | string | `""` | This account id must allways present in cm, and disallow to delete crd MapAccount with this id |
 | nameOverride | string | `""` | Override the `name` of the chart |
 | nodeSelector | object | `{}` | Node labels for pod assignment |
 | podAnnotations | object | `{}` | Annotations to add to the pod |
 | podDisruptionBudget | object | `{"enabled":false}` | If true, create PodDisruptionBudget resource |
-| podSecurityContext | object | `{"runAsNonRoot":true,"seccompProfile":{"type":"RuntimeDefault"}}` | Security context for the pod |
-| reconcileTime | string | `"30m"` | Reconcile time in controller, recheck all crds, and recreate cm records if needed |
-| replicaCount | int | `2` | Controller Pod replica count |
-| resources | object | `{"limits":{"cpu":"100m","memory":"128Mi"},"requests":{"cpu":"100m","memory":"128Mi"}}` | Resource requests and limits for the manager container |
-| securityContext | object | `{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]}}` | Security context for the manager container |
+| podSecurityContext | object | `{}` | Security context for the pod |
+| reconcileTime | string | `"120m"` | Reconcile time in controller, recheck all crds, and recreate cm records if needed |
+| replicaCount | int | `1` | Controller Pod replica count |
+| resources | object | `{}` | Resource requests and limits for the manager container |
+| securityContext | object | `{}` | Security context for the manager container |
 | selfSignedIssuer | object | `{"enabled":true}` | Enable cert-manager issuer and create self-signed certs |
 | tolerations | list | `[]` | Tolerations for pod assignment |
 

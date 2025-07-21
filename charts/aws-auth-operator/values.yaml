@@ -85,7 +85,7 @@ selfSignedIssuer:
   enabled: true
 
 # -- ConfigMap for MapAccount, MapUser, MapRoles in kube-system ns, aws-auth bu default
-configMapName: "aws-auth-test"
+configMapName: "aws-auth"
 # -- This account id must allways present in cm, and disallow to delete crd MapAccount with this id
 mustPresentAccountID: ""
 
