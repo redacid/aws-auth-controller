@@ -1,0 +1,24 @@
+apiVersion: aws-auth.prozorro.sale/v1beta1
+kind: MapRole
+metadata:
+  name: maprole-managed-node-group
+spec:
+  rolearn: arn:aws:iam::123456789012:role/managed-node-group
+  groups:
+    - sample:group1
+    - sample:group2
+  description: A sample maprole
+  username: system:node:{{EC2PrivateDNSName}}
+
+---
+
+apiVersion: aws-auth.prozorro.sale/v1beta1
+kind: MapRole
+metadata:
+  name: maprole-node-group
+spec:
+  rolearn: arn:aws:iam::123456789012:role/node-group-20240218223715755100000001
+  groups:
+    - sample:group3
+  description: A sample maprole2
+  username: system:node:{{EC2PrivateDNSName2}}

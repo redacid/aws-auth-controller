@@ -83,7 +83,7 @@ configMapName: "aws-auth-test"
 mustPresentAccountID: "123456789012"
 
 # -- Allow creating crds only on this ns, if blank allowing in any ns
-crdCreationAllowedNS: "kube-system"
+crdCreationAllowedNS: "aws-auth-ns"
 
 # -- Reconcile time in controller, recheck all crds, and recreate cm records if needed
 reconcileTime: "30m"

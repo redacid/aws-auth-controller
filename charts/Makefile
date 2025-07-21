@@ -25,15 +25,29 @@ TARGET_MAX_CHAR_NUM = 30
 
 all: help
 
-## Install helm-docs | Docs
-.PHONY: install_helm-docs
-install_helm-docs:
-	wget https://github.com/norwoodj/helm-docs/releases/download/v1.14.2/helm-docs_1.14.2_Linux_x86_64.tar.gz
-	tar -zxvf helm-docs_1.14.2_Linux_x86_64.tar.gz helm-docs
-	sudo mv helm-docs ./bin/
-	rm helm-docs_1.14.2_Linux_x86_64.tar.gz
+## Deploy example MapUser | Examples
+example_mapuser_deploy:
+	kubectl apply -f ./examples/mapuser.yaml -n $(TEST_NAMESPACE)
+## Deploy example MapRole
+example_maprole_deploy:
+	kubectl apply -f ./examples/maprole.yaml -n $(TEST_NAMESPACE)
+## Deploy example MapAccount
+example_mapaccount_deploy:
+	kubectl apply -f ./examples/mapaccount.yaml -n $(TEST_NAMESPACE)
+## Undeploy example MapUser
+example_mapuser_undeploy:
+	kubectl delete MapUser user1 -n $(TEST_NAMESPACE)
+	kubectl delete MapUser user2 -n $(TEST_NAMESPACE)
+## Undeploy example MapRole
+example_maprole_undeploy:
+	kubectl delete MapRole maprole-managed-node-group -n $(TEST_NAMESPACE)
+	kubectl delete MapRole maprole-node-group -n $(TEST_NAMESPACE)
+## Undeploy example MapAccount (account-123456789012 is must present account id, and not be deleted, see values.yaml for mustPresentAccountID)
+example_mapaccount_undeploy:
+	kubectl delete MapAccount account-111111111111 -n $(TEST_NAMESPACE)
+	kubectl delete MapAccount account-123456789012 -n $(TEST_NAMESPACE)
 
-## Generate Helm Chart Docs
+## Generate Helm Chart Docs | Docs
 .PHONY: helm-docs-generate
 helm-docs-generate:
 	helm-docs -c $(CHART_PATH) -o README.md
@@ -57,22 +71,31 @@ helm-kubeconform: helm-dependency-update install-kubeconform-plugin
 		--kube-version $($(var)_KUBERNETES_VERSION) \
 		--strict --summary --name-template=$($(var)_RELEASE_NAME) --namespace=$($(var)_NAMESPACE) $($(var)_VALUES) $(CHART_PATH) || exit;)
 
+## Template TEST | Deploy
+template-test:  helm-dependency-update helm-lint helm-kubeval helm-kubeconform
+	@helm template --namespace=$(TEST_NAMESPACE) $(TEST_RELEASE_NAME) $(CHART_PATH) $(TEST_VALUES)
+
 ## Deploy TEST
-deploy-test:  helm-dependency-update helm-package
+deploy-test:  helm-dependency-update helm-lint helm-kubeval helm-kubeconform helm-package
 	@helm upgrade -i --namespace=$(TEST_NAMESPACE) $(TEST_RELEASE_NAME) ./aws-auth-controller-$(GIT_STAMP).tgz $(TEST_VALUES) $(CREATE_NAMESPACE)
 
+## Uninstall TEST
 uninstall-test:
 	@helm uninstall --namespace=$(TEST_NAMESPACE) $(TEST_RELEASE_NAME)
-
-## Deploy TEST
-template-test:  helm-dependency-update
-	@helm template --namespace=$(TEST_NAMESPACE) $(TEST_RELEASE_NAME) $(CHART_PATH) $(TEST_VALUES)
 
 ## Dependency update helm | Tools
 helm-dependency-update:
 	@helm dependency update $(CHART_PATH)
 	@helm dependency list $(CHART_PATH)
 	@ls -l $(CHART_PATH)
+
+## Install helm-docs
+.PHONY: install_helm-docs
+install_helm-docs:
+	wget https://github.com/norwoodj/helm-docs/releases/download/v1.14.2/helm-docs_1.14.2_Linux_x86_64.tar.gz
+	tar -zxvf helm-docs_1.14.2_Linux_x86_64.tar.gz helm-docs
+	sudo mv helm-docs /usr/bin/
+	rm helm-docs_1.14.2_Linux_x86_64.tar.gz
 
 ## Build helm package
 helm-package:
@@ -81,7 +104,6 @@ helm-package:
 ## Install kubeconform helm plugin
 install-kubeconform-plugin:
 	@helm plugin list | grep -q kubeconform || helm plugin install https://github.com/redacid/helm-kubeconform --version 0.6.8.1
-
 
 ## Shows help. | Help
 help:

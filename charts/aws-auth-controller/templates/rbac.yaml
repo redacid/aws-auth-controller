@@ -4,7 +4,7 @@ metadata:
   labels:
     {{- include "aws-auth-operator.labels" . | nindent 4 }}
     control-plane: controller-manager
-  name: {{ include "aws-auth-operator.fullname" . }}-controller-manager
+  name: {{ include "aws-auth-operator.fullname" . }}-manager
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -125,7 +125,7 @@ roleRef:
   name: {{ include "aws-auth-operator.fullname" . }}-leader-election-role
 subjects:
 - kind: ServiceAccount
-  name: {{ include "aws-auth-operator.fullname" . }}-controller-manager
+  name: {{ include "aws-auth-operator.fullname" . }}-manager
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -140,5 +140,5 @@ roleRef:
   name: {{ include "aws-auth-operator.fullname" . }}-manager-role
 subjects:
 - kind: ServiceAccount
-  name: {{ include "aws-auth-operator.fullname" . }}-controller-manager
+  name: {{ include "aws-auth-operator.fullname" . }}-manager
   namespace: {{ .Release.Namespace }}

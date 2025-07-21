@@ -4,7 +4,7 @@ metadata:
   labels:
     {{- include "aws-auth-operator.labels" . | nindent 4 }}
     control-plane: controller-manager
-  name: {{ include "aws-auth-operator.fullname" . }}-controller-manager
+  name: {{ include "aws-auth-operator.fullname" . }}-manager
   namespace: {{ .Release.Namespace }}
 spec:
   replicas: {{ .Values.replicaCount }}
@@ -75,7 +75,7 @@ spec:
       {{- end }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
-      serviceAccountName: {{ include "aws-auth-operator.fullname" . }}-controller-manager
+      serviceAccountName: {{ include "aws-auth-operator.fullname" . }}-manager
       terminationGracePeriodSeconds: 10
       volumes:
         - name: webhook-certs

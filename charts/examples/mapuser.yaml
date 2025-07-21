@@ -1,0 +1,24 @@
+apiVersion: aws-auth.prozorro.sale/v1beta1
+kind: MapUser
+metadata:
+  name: user1
+spec:
+  description: A test mapuser1
+  username: user1@domain.com
+  groups:
+    - system:masters
+    - admins
+  userarn: arn:aws:iam::123456789012:user/user1@domain.com
+
+---
+apiVersion: aws-auth.prozorro.sale/v1beta1
+kind: MapUser
+metadata:
+  name: user2
+spec:
+  description: A test mapuser2
+  username: user2@domain.com
+  groups:
+    - system:masters
+    - users
+  userarn: arn:aws:iam::123456789012:user/user2@domain.com
