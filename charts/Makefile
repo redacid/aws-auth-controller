@@ -34,6 +34,10 @@ example_maprole_deploy:
 ## Deploy example MapAccount
 example_mapaccount_deploy:
 	kubectl apply -f ./examples/mapaccount.yaml -n $(TEST_NAMESPACE)
+
+example_show_cm:
+	kubectl get configmap -n kube-system aws-auth-test -o yaml
+
 ## Undeploy example MapUser
 example_mapuser_undeploy:
 	kubectl delete MapUser user1 -n $(TEST_NAMESPACE)
@@ -46,6 +50,8 @@ example_maprole_undeploy:
 example_mapaccount_undeploy:
 	kubectl delete MapAccount account-111111111111 -n $(TEST_NAMESPACE)
 	kubectl delete MapAccount account-123456789012 -n $(TEST_NAMESPACE)
+
+
 
 ## Generate Helm Chart Docs | Docs
 .PHONY: helm-docs-generate

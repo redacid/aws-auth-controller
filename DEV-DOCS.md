@@ -19,7 +19,7 @@ helm uninstall rrrrr -n nnnnn
 
 echo | openssl s_client -servername rrrrr-webhook-service.nnnnn.svc -showcerts -connect localhost:42765 2>/dev/null | openssl x509 -inform pem -noout -text
 
-cd ./charts helm upgrade -i --namespace kube-system aws-auth aws-auth-operator
+cd ./charts helm upgrade -i --namespace kube-system aws-auth aws-auth-controller
 cd ./config/samples kubectl apply -f aws-auth_v1beta1_mapuser.yaml -n kube-system
 cd ./config/samples kubectl apply -f aws-auth_v1beta1_maprole.yaml -n kube-system
 cd ./config/samples kubectl apply -f aws-auth_v1beta1_mapaccount.yaml -n kube-system
@@ -30,6 +30,8 @@ https://book.kubebuilder.io/reference/markers/crd-validation
 https://github.com/kubernetes-sigs/controller-runtime/blob/main/pkg/reconcile/reconcile.go#L46
 https://book.kubebuilder.io/reference/watching-resources.html?highlight=RequeueAfter#when-requeueafter-x-is-useful
 
+
+https://docs.aws.amazon.com/eks/latest/best-practices/identity-and-access-management.html
 https://github.com/gp42/aws-auth-operator
 https://github.com/keikoproj/aws-auth/
 
