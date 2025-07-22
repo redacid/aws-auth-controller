@@ -2,18 +2,410 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Prozorro Sale AWS Auth Controller Chart Repository</title>
-</head>
-<body>
-<h3>Prozorro Sale AWS Auth Controller Chart Repository</h3>
-This is the Helm chart repository for the Prozorro Sale aws-auth-controller application.<br />
-Support MapAccount, MapUser, MapRole CRDs <br /><br />
-helm repo add aws-auth-prozorro https://redacid.github.io/aws-auth-controller/ <br />
-helm repo update <br />
-helm search repo aws-auth-prozorro <br />
-<br />
-see <a href="https://github.com/redacid/aws-auth-controller/charts">https://github.com/redacid/aws-auth-controller/charts
-    </a>for more details
+    <style>
+        :root {
+            --primary-color: #2196F3;
+            --secondary-color: #1976D2;
+            --background-color: #f5f5f5;
+            --text-color: #333;
+        }
 
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 2rem;
+            background-color: var(--background-color);
+            color: var(--text-color);
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+            font-size: 2rem;
+        }
+
+        .description {
+            margin-bottom: 2rem;
+        }
+
+        .code-block {
+            background-color: #f8f9fa;
+            padding: 1rem;
+            border-radius: 4px;
+            border-left: 4px solid var(--primary-color);
+            font-family: 'Consolas', monospace;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        .features {
+            background-color: #e3f2fd;
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+        }
+
+        .features ul {
+            margin: 0;
+            padding-left: 1.5rem;
+        }
+
+        .link-button {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background-color: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        .link-button:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .chart-info {
+            background-color: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+
+        .chart-meta {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .meta-item {
+            background-color: #f8f9fa;
+            padding: 0.75rem;
+            border-radius: 4px;
+        }
+
+        .meta-item strong {
+            display: block;
+            color: var(--secondary-color);
+            margin-bottom: 0.25rem;
+        }
+
+        .description-item {
+            grid-column: 1 / -1;
+        }
+
+        .maintainer {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .maintainer-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+        }
+
+        .versions-list {
+            margin-top: 1rem;
+        }
+
+        .version-tag {
+            display: inline-block;
+            background-color: #e3f2fd;
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+        }
+
+        .latest-badge {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .chart-icon {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 1rem;
+        }
+
+        .chart-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .chart-title {
+            flex-grow: 1;
+        }
+
+        .keywords {
+            margin-top: 1rem;
+        }
+
+        .keyword-tag {
+            display: inline-block;
+            background-color: #f1f8e9;
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+            color: #558b2f;
+        }
+
+        .sources-list {
+            margin-top: 1rem;
+        }
+
+        .source-link {
+            display: block;
+            color: var(--primary-color);
+            text-decoration: none;
+            margin-bottom: 0.5rem;
+        }
+
+        .source-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
+
+<body>
+<div class="container">
+    <h1>Prozorro Sale AWS Auth Controller Chart Repository</h1>
+
+    <div class="description">
+        This is the Helm chart repository for the Prozorro Sale aws-auth-controller application.
+    </div>
+
+    <div id="chartInfo" class="chart-info">
+        Loading chart information...
+    </div>
+
+    <div class="features">
+        <strong>Supported CRDs:</strong>
+        <ul>
+            <li>MapAccount</li>
+            <li>MapUser</li>
+            <li>MapRole</li>
+        </ul>
+    </div>
+
+    <div class="code-block">
+        # Add repository<br>
+        helm repo add aws-auth-prozorro https://redacid.github.io/aws-auth-controller/<br><br>
+        # Update repositories<br>
+        helm repo update<br><br>
+        # Search available charts<br>
+        helm search repo aws-auth-prozorro
+    </div>
+
+    <p>
+        For more details, visit the
+        <a href="https://github.com/redacid/aws-auth-controller/charts" class="link-button">
+            GitHub
+        </a>
+    </p>
+</div>
+
+<script>
+    function getVersionFromUrl(url) {
+        const match = url.match(/\/download\/([^/]+)\/aws-auth-controller/);
+        return match ? match[1] : null;
+    }
+
+    function findLatestVersion(chartEntries) {
+        return chartEntries.reduce((latest, current) => {
+            if (!current.version) return latest;
+            if (!latest) return current;
+
+            // Розбиваємо версії на компоненти та конвертуємо в числа
+            const currentParts = current.version.split('.').map(Number);
+            const latestParts = latest.version.split('.').map(Number);
+
+            // Порівнюємо кожен компонент версії
+            for (let i = 0; i < Math.max(currentParts.length, latestParts.length); i++) {
+                const currentPart = currentParts[i] || 0;
+                const latestPart = latestParts[i] || 0;
+
+                if (currentPart > latestPart) return current;
+                if (currentPart < latestPart) return latest;
+            }
+
+            return latest; // Якщо версії однакові, залишаємо поточну "latest"
+        }, null);
+    }
+
+
+    async function loadChartInfo() {
+        try {
+            const response = await fetch('index.yaml');
+            const text = await response.text();
+            const chartData = parseYaml(text);
+
+            if (chartData.entries && chartData.entries['aws-auth-controller']) {
+                const chartEntries = chartData.entries['aws-auth-controller'];
+                if (chartEntries && chartEntries.length > 0) {
+                    const latestChart = findLatestVersion(chartEntries);
+                    displayChartInfo(latestChart, chartEntries);
+                }
+            }
+        } catch (error) {
+            console.error('Error loading chart info:', error);
+            document.getElementById('chartInfo').innerHTML = 'Error loading chart information. Details in console.';
+        }
+    }
+
+
+    function parseYaml(text) {
+        try {
+            return jsyaml.load(text);
+        } catch (error) {
+            console.error('Error parsing YAML:', error);
+            throw error;
+        }
+    }
+
+    function displayChartInfo(chartInfo, allVersions) {
+        if (!chartInfo) {
+            document.getElementById('chartInfo').innerHTML = 'Error: Chart information not found';
+            return;
+        }
+
+        // Перевіряємо структуру maintainers перед використанням
+        const maintainersHtml = chartInfo.maintainers && Array.isArray(chartInfo.maintainers) && chartInfo.maintainers.length > 0
+            ? `
+            <div class="meta-item">
+                <strong>Maintainers</strong>
+                ${chartInfo.maintainers.map(maintainer => {
+                // Перевіряємо наявність об'єкта maintainer та його властивостей
+                if (!maintainer || typeof maintainer !== 'object') return '';
+
+                const name = maintainer.name || 'Unknown';
+                const email = maintainer.email || '';
+                const initial = name && typeof name === 'string' ? name.charAt(0).toUpperCase() : '?';
+
+                return `
+                        <div class="maintainer">
+                            <div class="maintainer-icon">${initial}</div>
+                            <div>
+                                <div>${name}</div>
+                                ${email ? `<div style="font-size: 0.9em; color: #666;">${email}</div>` : ''}
+                            </div>
+                        </div>
+                    `;
+            }).join('')}
+            </div>
+        `
+            : '';
+
+        const chartInfoHtml = `
+        <div class="chart-header">
+            ${chartInfo.icon ? `<img src="${chartInfo.icon}" alt="Chart icon" class="chart-icon">` : ''}
+            <div class="chart-title">
+                <h2>${chartInfo.name || 'Unknown'} <span style="font-size: 0.8em;">v${chartInfo.version || 'Unknown'}</span></h2>
+            </div>
+        </div>
+        <div class="chart-meta">
+            <div class="meta-item">
+                <strong>Latest Version</strong>
+                ${chartInfo.version || 'Unknown'} ${chartInfo.appVersion ? `(App: ${chartInfo.appVersion})` : ''}
+            </div>
+            <div class="meta-item">
+                <strong>Type</strong>
+                ${chartInfo.type || 'Unknown'}
+            </div>
+            <div class="meta-item">
+                <strong>Created</strong>
+                ${chartInfo.created ? new Date(chartInfo.created).toLocaleDateString() : 'Unknown'}
+            </div>
+            <div class="meta-item description-item">
+                <strong>Description</strong>
+                ${chartInfo.description || 'No description available'}
+            </div>
+        </div>
+
+        ${maintainersHtml}
+
+        ${chartInfo.keywords && Array.isArray(chartInfo.keywords) && chartInfo.keywords.length > 0 ? `
+            <div class="keywords">
+                <strong>Keywords:</strong>
+                ${chartInfo.keywords.map(keyword =>
+            `<span class="keyword-tag">${keyword}</span>`
+        ).join('')}
+            </div>
+        ` : ''}
+
+        ${chartInfo.sources && Array.isArray(chartInfo.sources) && chartInfo.sources.length > 0 ? `
+            <div class="sources-list">
+                <strong>Sources:</strong>
+                ${chartInfo.sources.map(source =>
+            `<a href="${source}" class="source-link" target="_blank">${source}</a>`
+        ).join('')}
+            </div>
+        ` : ''}
+
+<div class="versions-list">
+    <strong>Available Versions:</strong><br>
+    ${Array.isArray(allVersions) ?
+            [...allVersions]
+                .sort((a, b) => {
+                    const versionA = a.version.split('.').map(Number);
+                    const versionB = b.version.split('.').map(Number);
+
+                    for (let i = 0; i < Math.max(versionA.length, versionB.length); i++) {
+                        const numA = versionA[i] || 0;
+                        const numB = versionB[i] || 0;
+                        if (numA !== numB) {
+                            return numB - numA; // Сортування за спаданням
+                        }
+                    }
+                    return 0;
+                })
+                .map((v, idx) => `
+                <span class="version-tag ${v.version === chartInfo.version ? 'latest-badge' : ''}">
+                    ${v.version || 'Unknown'}
+                    ${v.version === chartInfo.version ? ' (latest)' : ''}
+                </span>
+            `).join('')
+            : ''}
+</div>
+
+    `;
+
+        document.getElementById('chartInfo').innerHTML = chartInfoHtml;
+    }
+
+
+    // Load chart info when the page loads
+    document.addEventListener('DOMContentLoaded', loadChartInfo);
+</script>
 </body>
 </html>
