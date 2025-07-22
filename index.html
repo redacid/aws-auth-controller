@@ -236,10 +236,10 @@
 </div>
 
 <script>
-    function getVersionFromUrl(url) {
+/*    function getVersionFromUrl(url) {
         const match = url.match(/\/download\/([^/]+)\/aws-auth-controller/);
         return match ? match[1] : null;
-    }
+    }*/
 
     function findLatestVersion(chartEntries) {
         return chartEntries.reduce((latest, current) => {
@@ -250,7 +250,7 @@
             const currentParts = current.version.split('.').map(Number);
             const latestParts = latest.version.split('.').map(Number);
 
-            // Порівнюємо кожен компонент версії
+            // Compare every component of a version
             for (let i = 0; i < Math.max(currentParts.length, latestParts.length); i++) {
                 const currentPart = currentParts[i] || 0;
                 const latestPart = latestParts[i] || 0;
@@ -259,7 +259,7 @@
                 if (currentPart < latestPart) return latest;
             }
 
-            return latest; // Якщо версії однакові, залишаємо поточну "latest"
+            return latest; // If the versions are the same, we leave the current "Latest"
         }, null);
     }
 
@@ -299,13 +299,13 @@
             return;
         }
 
-        // Перевіряємо структуру maintainers перед використанням
+        // Check the Maintainers structure before using
         const maintainersHtml = chartInfo.maintainers && Array.isArray(chartInfo.maintainers) && chartInfo.maintainers.length > 0
             ? `
             <div class="meta-item">
                 <strong>Maintainers</strong>
                 ${chartInfo.maintainers.map(maintainer => {
-                // Перевіряємо наявність об'єкта maintainer та його властивостей
+                // Check the presence of the facility Maintainer and its properties
                 if (!maintainer || typeof maintainer !== 'object') return '';
 
                 const name = maintainer.name || 'Unknown';
@@ -326,7 +326,7 @@
         `
             : '';
 
-        const chartInfoHtml = `
+        document.getElementById('chartInfo').innerHTML = `
         <div class="chart-header">
             ${chartInfo.icon ? `<img src="${chartInfo.icon}" alt="Chart icon" class="chart-icon">` : ''}
             <div class="chart-title">
@@ -344,7 +344,14 @@
             </div>
             <div class="meta-item">
                 <strong>Created</strong>
-                ${chartInfo.created ? new Date(chartInfo.created).toLocaleDateString() : 'Unknown'}
+                ${chartInfo.created ? new Date(chartInfo.created).toLocaleDateString("uk-UA", {
+                    hour: "numeric",
+                    minute: "numeric",
+                    second: "numeric",
+                    year: "numeric",
+                    month: "numeric",
+                    day: "numeric",
+                }) : 'Unknown'}
             </div>
             <div class="meta-item description-item">
                 <strong>Description</strong>
@@ -384,12 +391,12 @@
                         const numA = versionA[i] || 0;
                         const numB = versionB[i] || 0;
                         if (numA !== numB) {
-                            return numB - numA; // Сортування за спаданням
+                            return numB - numA; // Sorting by descending
                         }
                     }
                     return 0;
                 })
-                .map((v, idx) => `
+                .map((v) => `
                 <span class="version-tag ${v.version === chartInfo.version ? 'latest-badge' : ''}">
                     ${v.version || 'Unknown'}
                     ${v.version === chartInfo.version ? ' (latest)' : ''}
@@ -399,10 +406,7 @@
 </div>
 
     `;
-
-        document.getElementById('chartInfo').innerHTML = chartInfoHtml;
     }
-
 
     // Load chart info when the page loads
     document.addEventListener('DOMContentLoaded', loadChartInfo);
