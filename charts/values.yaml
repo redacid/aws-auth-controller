@@ -1,0 +1,97 @@
+# Default values for aws-auth-operator.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# -- Controller Pod replica count
+replicaCount: 2
+
+image:
+  # -- Image repository
+  repository: ghcr.io/redacid/aws-auth-controller
+  # -- Image pull policy
+  pullPolicy: IfNotPresent
+  # -- Image tag, will override the default tag derived from the chart app version
+  tag: "0.1.0"
+
+# -- Image pull secrets
+imagePullSecrets: []
+# -- Override the `name` of the chart
+nameOverride: ""
+# -- Override the `fullname` of the chart
+fullnameOverride: ""
+
+# -- Annotations to add to the pod
+podAnnotations: {}
+# -- Security context for the manager container
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+#  readOnlyRootFilesystem: true
+#  runAsNonRoot: true
+#  runAsUser: 1000
+
+# -- Security context for the pod
+podSecurityContext:
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+
+# -- Resource requests and limits for the manager container
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+# -- Node labels for pod assignment
+nodeSelector: {}
+
+# -- Tolerations for pod assignment
+tolerations: []
+
+# -- Affinity for pod assignment
+affinity: {}
+#   nodeAffinity:
+#     requiredDuringSchedulingIgnoredDuringExecution:
+#       nodeSelectorTerms:
+#         - matchExpressions:
+#           - key: kubernetes.io/arch
+#             operator: In
+#             values:
+#               - amd64
+#               - arm64
+#               - ppc64le
+#               - s390x
+#           - key: kubernetes.io/os
+#             operator: In
+#             values:
+#               - linux
+
+
+# Controller-specific config
+# -- If true, create PodDisruptionBudget resource
+podDisruptionBudget:
+  enabled: false
+
+# -- ConfigMap for MapAccount, MapUser, MapRoles in kube-system ns, aws-auth bu default
+configMapName: "aws-auth-test"
+# -- This account id must allways present in cm, and disallow to delete crd MapAccount with this id
+mustPresentAccountID: "123456789012"
+
+# -- Allow creating crds only on this ns, if blank allowing in any ns
+crdCreationAllowedNS: "aws-auth-ns"
+
+# -- Reconcile time in controller, recheck all crds, and recreate cm records if needed
+reconcileTime: "30m"
+
+# -- Other commandline controller arguments
+controllerArguments:
+  - --zap-devel=true
+  - --zap-encoder=console
+  - --zap-log-level=info
+  - --zap-time-encoding=iso8601
+  - --zap-stacktrace-level=panic

@@ -1,0 +1,15 @@
+apiVersion: aws-auth.prozorro.sale/v1beta1
+kind: MapAccount
+metadata:
+  name: account-111111111111
+spec:
+  accountid: "111111111111"
+
+---
+
+apiVersion: aws-auth.prozorro.sale/v1beta1
+kind: MapAccount
+metadata:
+  name: account-123456789012
+spec:
+  accountid: "123456789012"

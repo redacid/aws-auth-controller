@@ -1,0 +1,144 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    {{- include "aws-auth-operator.labels" . | nindent 4 }}
+    control-plane: controller-manager
+  name: {{ include "aws-auth-operator.fullname" . }}-manager
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    {{- include "aws-auth-operator.labels" . | nindent 4 }}
+    control-plane: controller-manager
+  name: {{ include "aws-auth-operator.fullname" . }}-leader-election-role
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+  - apiGroups:
+      - coordination.k8s.io
+    resources:
+      - leases
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+  - apiGroups:
+      - ""
+    resources:
+      - events
+    verbs:
+      - create
+      - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    {{- include "aws-auth-operator.labels" . | nindent 4 }}
+    control-plane: controller-manager
+  name: {{ include "aws-auth-operator.fullname" . }}-manager-role
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - ""
+    resourceNames:
+      - aws-auth
+    resources:
+      - configmaps
+    verbs:
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - aws-auth.prozorro.sale
+    resources:
+      - mapaccounts
+      - maproles
+      - mapusers
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - aws-auth.prozorro.sale
+    resources:
+      - mapaccounts/finalizers
+      - maproles/finalizers
+      - mapusers/finalizers
+    verbs:
+      - update
+  - apiGroups:
+      - aws-auth.prozorro.sale
+    resources:
+      - mapaccounts/status
+      - maproles/status
+      - mapusers/status
+    verbs:
+      - get
+      - patch
+      - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    {{- include "aws-auth-operator.labels" . | nindent 4 }}
+    control-plane: controller-manager
+  name: {{ include "aws-auth-operator.fullname" . }}-leader-election-rb
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "aws-auth-operator.fullname" . }}-leader-election-role
+subjects:
+- kind: ServiceAccount
+  name: {{ include "aws-auth-operator.fullname" . }}-manager
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    {{- include "aws-auth-operator.labels" . | nindent 4 }}
+    control-plane: controller-manager
+  name: {{ include "aws-auth-operator.fullname" . }}-manager-rb
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "aws-auth-operator.fullname" . }}-manager-role
+subjects:
+- kind: ServiceAccount
+  name: {{ include "aws-auth-operator.fullname" . }}-manager
+  namespace: {{ .Release.Namespace }}
